@@ -1,0 +1,9 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Styles globaux de l'application */
+body {
+  @apply bg-slate-100 text-slate-800;
+  font-family: system-ui, -apple-system, 'Segoe UI', Roboto, Arial, sans-serif;
+}

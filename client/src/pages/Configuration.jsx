@@ -1,0 +1,83 @@
+// =====================================================================
+//  Page Configuration : 6 onglets (mentions, utilisateurs, e-mail,
+//  prestations, modes paiement, superviseur).
+// =====================================================================
+import { useState, useEffect } from 'react';
+import { useAuth } from '../contextes/ContexteAuth.jsx';
+import { configService } from '../services/configService.js';
+import OngletMentions from './configuration/OngletMentions.jsx';
+import OngletUtilisateurs from './configuration/OngletUtilisateurs.jsx';
+import OngletEmail from './configuration/OngletEmail.jsx';
+import OngletPrestations from './configuration/OngletPrestations.jsx';
+import OngletModesPaiement from './configuration/OngletModesPaiement.jsx';
+import OngletSuperviseur from './configuration/OngletSuperviseur.jsx';
+
+const ONGLETS = [
+  { id: 'mentions',     label: 'Mentions documents' },
+  { id: 'utilisateurs', label: 'Paramètres utilisateurs' },
+  { id: 'email',        label: "Envoi d'e-mails" },
+  { id: 'prestations',  label: 'Liste prestations' },
+  { id: 'paiements',    label: 'Modes de paiement' },
+  { id: 'superviseur',  label: 'Options superviseur', adminSeulement: true },
+];
+
+export default function Configuration() {
+  const { utilisateur } = useAuth();
+  const [onglet, setOnglet] = useState('mentions');
+  const [params, setParams] = useState(null);
+  const [chargement, setChargement] = useState(true);
+
+  useEffect(() => {
+    configService.getParametres()
+      .then(p => { setParams(p); setChargement(false); });
+  }, []);
+
+  if (chargement) return <p className="text-slate-400 text-sm">Chargement…</p>;
+  if (!params) return <p className="text-red-500 text-sm">Erreur de chargement des paramètres.</p>;
+
+  const ongletsVisibles = ONGLETS.filter(o => !o.adminSeulement || utilisateur?.droit_admin);
+
+  return (
+    <div>
+      <h1 className="text-2xl font-bold mb-5">Configuration</h1>
+
+      {/* Barre d'onglets */}
+      <div className="flex gap-1 border-b border-slate-200 mb-6 overflow-x-auto">
+        {ongletsVisibles.map(o => (
+          <button key={o.id} onClick={() => setOnglet(o.id)}
+            className={`px-4 py-2 text-sm font-medium whitespace-nowrap transition rounded-t-lg
+              ${onglet === o.id
+                ? 'bg-white border border-b-white border-slate-200 -mb-px text-primaire-fonce'
+                : 'text-slate-500 hover:text-slate-700'}`}>
+            {o.label}
+          </button>
+        ))}
+      </div>
+
+      {/* Contenu de l'onglet actif */}
+      <div>
+        {onglet === 'mentions' && (
+          <OngletMentions params={params} onMaj={p => setParams({ ...params, ...p })} />
+        )}
+        {onglet === 'utilisateurs' && (
+          <OngletUtilisateurs utilisateurConnecte={utilisateur} />
+        )}
+        {onglet === 'email' && (
+          <OngletEmail />
+        )}
+        {onglet === 'prestations' && (
+          <OngletPrestations />
+        )}
+        {onglet === 'paiements' && (
+          <OngletModesPaiement />
+        )}
+        {onglet === 'superviseur' && utilisateur?.droit_admin && (
+          <OngletSuperviseur
+            dernierNumero={params.facture_dernier_numero_interne}
+            onMajNumero={n => setParams({ ...params, facture_dernier_numero_interne: n })}
+          />
+        )}
+      </div>
+    </div>
+  );
+}
