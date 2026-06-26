@@ -56,7 +56,7 @@ Architecture en couches — `routes → controleurs → modeles → prisma/`.
 - Chaque dossier = une base MariaDB distincte avec ses propres credentials.
 - Les credentials de dossier viennent de la licence Exoria décryptée (`database_accesses[]`).
 - À la connexion, l'utilisateur choisit un dossier → credentials stockés en session.
-- Un `PrismaClient` est instancié dynamiquement par dossier (pool par clé `host:port:db:user`).
+- Un `PrismaClient` est instancié dynamiquement par dossier (pool par clé `DATABASE_URL`, dans `src/config/prisma.js`).
 - Les migrations Prisma sont appliquées automatiquement à la première sélection d'un dossier.
 - En mode DEV bypass, un dossier fictif configuré dans `.env` est utilisé.
 
@@ -83,4 +83,4 @@ Architecture en couches — `routes → controleurs → modeles → prisma/`.
 
 - **Tout le code, les commentaires, les variables et les textes UI sont en français.** Maintenir cette cohérence.
 - Nommage : `camelCase` pour les variables/fonctions JS, mots français (ex. `controleurs`, `modeles`, `composants`).
-- Le développement est organisé en **lots** numérotés (voir README). Lot 0 est en cours ; Lot 1 (fondations initiales) est terminé mais sera absorbé/remplacé par Lot 0.
+- Le développement est organisé en **lots** numérotés (voir README). Lots 0 et 2 terminés. Lot 3 (Configuration) est la prochaine étape.

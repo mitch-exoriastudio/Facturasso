@@ -6,6 +6,7 @@ import express from 'express';
 import cors from 'cors';
 import 'dotenv/config';
 
+import publicRoutes from './routes/publicRoutes.js';
 import authRoutes from './routes/authRoutes.js';
 import clientRoutes from './routes/clientRoutes.js';
 import configRoutes from './routes/configRoutes.js';
@@ -23,6 +24,7 @@ app.use(express.json({ limit: '15mb' }));
 app.get('/api/sante', (req, res) => res.json({ statut: 'ok' }));
 
 // Regroupement des routes par domaine.
+app.use('/api/public', publicRoutes);
 app.use('/api/auth', authRoutes);
 app.use('/api/clients', clientRoutes);
 app.use('/api/config', configRoutes);

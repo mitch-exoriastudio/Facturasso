@@ -3,7 +3,7 @@
 // =====================================================================
 import 'dotenv/config';
 import { app } from './app.js';
-import { testerConnexion } from './config/bdd.js';
+import { testerConnexion } from './config/prisma.js';
 
 const PORT = process.env.PORT || 4000;
 

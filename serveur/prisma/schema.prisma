@@ -1,0 +1,332 @@
+// Schéma Prisma — base de données MariaDB
+// Provider "mysql" est compatible MariaDB.
+// Connexion via DATABASE_URL dans .env
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+// ─── Utilisateurs ────────────────────────────────────────────────────────────
+
+model Utilisateur {
+  id_utilisateur        Int          @id @default(autoincrement())
+  nom_utilisateur       String       @unique @db.VarChar(40)
+  mot_de_passe_hache    String       @db.VarChar(255)
+  droit_admin           Boolean      @default(false)
+  compte_desactive      Boolean      @default(false)
+  droit_consult_fac     Boolean      @default(false)
+  droit_ajout_fac       Boolean      @default(false)
+  droit_consult_paiem   Boolean      @default(false)
+  droit_ajout_paiem     Boolean      @default(false)
+  droit_consult_clients Boolean      @default(false)
+  droit_ajout_clients   Boolean      @default(false)
+  droit_config          Boolean      @default(false)
+  email_config          EmailConfig?
+
+  @@map("utilisateur")
+}
+
+// ─── Clients ─────────────────────────────────────────────────────────────────
+
+model Client {
+  id_client                Int         @id @default(autoincrement())
+  civilite                 String?     @db.VarChar(10)
+  nom                      String      @db.Text
+  prenom                   String?     @db.Text
+  adresse1                 String?     @db.Text
+  adresse2                 String?     @db.Text
+  adresse3                 String?     @db.Text
+  code_postal              String?     @db.VarChar(10)
+  ville                    String?     @db.VarChar(165)
+  pays                     String?     @db.VarChar(200)
+  telephone                String?     @db.VarChar(20)
+  mobile                   String?     @db.VarChar(20)
+  email                    String?     @db.VarChar(260)
+  archive                  Boolean     @default(false)
+  date_creation            DateTime    @default(now())
+  date_modification        DateTime    @updatedAt
+  utilisateur_creation     String?     @db.VarChar(50)
+  utilisateur_modification String?     @db.VarChar(50)
+  brouillons               Brouillon[]
+  factures                 Facture[]
+  paiements                Paiement[]
+
+  @@map("client")
+}
+
+// ─── Taux de TVA ─────────────────────────────────────────────────────────────
+
+model TauxTva {
+  id_taux_tva      Int              @id @default(autoincrement())
+  libelle          String           @db.VarChar(50)
+  taux             Decimal          @db.Decimal(5, 4)
+  est_defaut       Boolean          @default(false)
+  ne_plus_proposer Boolean          @default(false)
+  brouillon_lignes BrouillonLigne[]
+  facture_lignes   FactureLigne[]
+
+  @@map("taux_tva")
+}
+
+// ─── Prestations (catalogue) ──────────────────────────────────────────────────
+
+model Prestation {
+  id_prestation           Int              @id @default(autoincrement())
+  reference               String?          @unique @db.VarChar(20)
+  designation             String           @db.Text
+  prix_unitaire           Decimal          @db.Decimal(12, 2)
+  ne_plus_proposer_presta Boolean          @default(false)
+  brouillon_lignes        BrouillonLigne[]
+  facture_lignes          FactureLigne[]
+
+  @@map("prestation")
+}
+
+// ─── Modes de paiement ────────────────────────────────────────────────────────
+
+model ModePaiement {
+  id_mode_paiement     Int     @id @default(autoincrement())
+  nom_mode_paiement    String  @db.VarChar(40)
+  abrege_mode_paiement String  @db.VarChar(10)
+  ne_plus_proposer     Boolean @default(false)
+
+  @@map("mode_paiement")
+}
+
+// ─── Référentiel villes (auto-complétion) ─────────────────────────────────────
+
+model Ville {
+  id_ville    Int    @id @default(autoincrement())
+  code_postal String @db.VarChar(10)
+  nom_ville   String @db.VarChar(160)
+
+  @@index([code_postal])
+  @@index([nom_ville])
+  @@map("ville")
+}
+
+// ─── Brouillons ───────────────────────────────────────────────────────────────
+
+model Brouillon {
+  id_brouillon             Int              @id @default(autoincrement())
+  id_client                Int?
+  client                   Client?          @relation(fields: [id_client], references: [id_client], onDelete: SetNull)
+  brouillon_date           DateTime?        @db.Date
+  montant_ht               Decimal          @default(0) @db.Decimal(12, 2)
+  montant_tva              Decimal          @default(0) @db.Decimal(12, 2)
+  montant_total            Decimal          @default(0) @db.Decimal(12, 2)
+  commentaire_entete       String?          @db.VarChar(400)
+  commentaire_pied_page    String?          @db.VarChar(400)
+  date_creation            DateTime         @default(now())
+  date_modification        DateTime         @updatedAt
+  utilisateur_creation     String?          @db.VarChar(50)
+  utilisateur_modification String?          @db.VarChar(50)
+  est_devenu_facture       Boolean          @default(false)
+  lignes                   BrouillonLigne[]
+
+  @@map("brouillon")
+}
+
+model BrouillonLigne {
+  id_brouillon_ligne     Int         @id @default(autoincrement())
+  id_brouillon           Int
+  brouillon              Brouillon   @relation(fields: [id_brouillon], references: [id_brouillon], onDelete: Cascade)
+  id_prestation          Int?
+  prestation             Prestation? @relation(fields: [id_prestation], references: [id_prestation], onDelete: SetNull)
+  prestation_date        DateTime?   @db.Date
+  quantite               Decimal     @db.Decimal(12, 2)
+  prestation_designation String      @db.VarChar(200)
+  prix_unitaire_ht       Decimal     @db.Decimal(12, 2)
+  montant_ht             Decimal     @map("montant") @db.Decimal(12, 2)
+  id_taux_tva            Int?
+  taux_tva               TauxTva?    @relation(fields: [id_taux_tva], references: [id_taux_tva], onDelete: SetNull)
+  montant_tva            Decimal     @default(0) @db.Decimal(12, 2)
+  montant_ttc            Decimal     @default(0) @db.Decimal(12, 2)
+
+  @@map("brouillon_ligne")
+}
+
+// ─── Factures ─────────────────────────────────────────────────────────────────
+
+model Facture {
+  id_facture               Int            @id @default(autoincrement())
+  numero_interne_facture   Int            @unique
+  facture_date             DateTime?      @db.Date
+  id_client                Int?
+  client                   Client?        @relation(fields: [id_client], references: [id_client], onDelete: SetNull)
+  montant_ht               Decimal        @default(0) @db.Decimal(12, 2)
+  montant_tva              Decimal        @default(0) @db.Decimal(12, 2)
+  montant_total            Decimal        @default(0) @db.Decimal(12, 2)
+  montant_paye             Decimal        @default(0) @db.Decimal(12, 2)
+  commentaire_entete       String?        @db.VarChar(400)
+  commentaire_pied_page    String?        @db.VarChar(400)
+
+  // Identité client figée à l'émission
+  client_civilite          String?        @db.VarChar(10)
+  client_nom               String?        @db.VarChar(255)
+  client_prenom            String?        @db.VarChar(255)
+  client_adresse1          String?        @db.Text
+  client_adresse2          String?        @db.Text
+  client_adresse3          String?        @db.Text
+  client_code_postal       String?        @db.VarChar(10)
+  client_ville             String?        @db.VarChar(165)
+  client_pays              String?        @db.VarChar(200)
+  client_email             String?        @db.VarChar(260)
+  client_siren             String?        @db.VarChar(9)
+  client_siret             String?        @db.VarChar(14)
+  client_num_tva_intra     String?        @db.VarChar(20)
+  client_autre_mention1    String?        @db.VarChar(400)
+  client_autre_mention2    String?        @db.VarChar(400)
+
+  // Identité association figée à l'émission
+  asso_raison_sociale      String?        @db.VarChar(255)
+  asso_contact_nom         String?        @db.VarChar(100)
+  asso_contact_prenom      String?        @db.VarChar(100)
+  asso_adresse1            String?        @db.VarChar(255)
+  asso_adresse2            String?        @db.VarChar(255)
+  asso_adresse3            String?        @db.VarChar(255)
+  asso_code_postal         String?        @db.VarChar(10)
+  asso_ville               String?        @db.VarChar(165)
+  asso_email               String?        @db.VarChar(260)
+  asso_tel                 String?        @db.VarChar(20)
+  asso_pays                String?        @db.VarChar(200)
+  asso_siren               String?        @db.VarChar(9)
+  asso_siret               String?        @db.VarChar(14)
+  asso_num_tva_intra       String?        @db.VarChar(20)
+  asso_statut              String?        @db.VarChar(100)
+  asso_naf                 String?        @db.VarChar(10)
+  asso_autre_mention1      String?        @db.VarChar(400)
+  asso_autre_mention2      String?        @db.VarChar(400)
+
+  date_envoi_email         DateTime?      @db.Date
+  date_creation            DateTime       @default(now())
+  date_modification        DateTime       @updatedAt
+  utilisateur_creation     String?        @db.VarChar(50)
+  utilisateur_modification String?        @db.VarChar(50)
+  lignes                   FactureLigne[]
+  paiements                Paiement[]
+
+  @@map("facture")
+}
+
+model FactureLigne {
+  id_facture_ligne       Int         @id @default(autoincrement())
+  id_facture             Int
+  facture                Facture     @relation(fields: [id_facture], references: [id_facture], onDelete: Cascade)
+  id_prestation          Int?
+  prestation             Prestation? @relation(fields: [id_prestation], references: [id_prestation], onDelete: SetNull)
+  prestation_date        DateTime?   @db.Date
+  quantite               Decimal     @db.Decimal(12, 2)
+  prix_unitaire_ht       Decimal     @db.Decimal(12, 2)
+  montant_ht             Decimal     @map("montant") @db.Decimal(12, 2)
+  id_taux_tva            Int?
+  taux_tva               TauxTva?    @relation(fields: [id_taux_tva], references: [id_taux_tva], onDelete: SetNull)
+  montant_tva            Decimal     @default(0) @db.Decimal(12, 2)
+  montant_ttc            Decimal     @default(0) @db.Decimal(12, 2)
+  prestation_designation String      @db.VarChar(200)
+
+  @@map("facture_ligne")
+}
+
+// ─── Paiements ────────────────────────────────────────────────────────────────
+
+model Paiement {
+  id_paiement              Int       @id @default(autoincrement())
+  date_paiement            DateTime? @db.Date
+  id_facture               Int?
+  facture                  Facture?  @relation(fields: [id_facture], references: [id_facture], onDelete: SetNull)
+  id_client                Int
+  client                   Client    @relation(fields: [id_client], references: [id_client], onDelete: Restrict)
+  montant_paiement         Decimal   @db.Decimal(12, 2)
+  nom_mode_paiement        String    @db.VarChar(40)
+  abrege_mode_paiement     String    @db.VarChar(10)
+  observation              String?   @db.Text
+  date_creation            DateTime  @default(now())
+  date_modification        DateTime  @updatedAt
+  utilisateur_creation     String?   @db.VarChar(50)
+  utilisateur_modification String?   @db.VarChar(50)
+
+  @@map("paiement")
+}
+
+// ─── Paramètres généraux (ligne unique, id = 1) ───────────────────────────────
+
+model ParametreGeneral {
+  id_parametre_general           Int     @id @default(autoincrement())
+
+  // Identité de l'association (source pour pré-remplir les factures)
+  asso_raison_sociale            String? @db.VarChar(255)
+  asso_contact_nom               String? @db.VarChar(100)
+  asso_contact_prenom            String? @db.VarChar(100)
+  asso_adresse1                  String? @db.VarChar(255)
+  asso_adresse2                  String? @db.VarChar(255)
+  asso_adresse3                  String? @db.VarChar(255)
+  asso_code_postal               String? @db.VarChar(10)
+  asso_ville                     String? @db.VarChar(165)
+  asso_email                     String? @db.VarChar(260)
+  asso_email2                    String? @db.VarChar(260)
+  asso_tel                       String? @db.VarChar(20)
+  asso_tel2                      String? @db.VarChar(20)
+  asso_pays                      String? @db.VarChar(200)
+  asso_siren                     String? @db.VarChar(9)
+  asso_siret                     String? @db.VarChar(14)
+  asso_num_tva_intra             String? @db.VarChar(20)
+  asso_statut                    String? @db.VarChar(100)
+  asso_naf                       String? @db.VarChar(10)
+  asso_autre_mention1            String? @db.VarChar(400)
+  asso_autre_mention2            String? @db.VarChar(400)
+  rna                            String? @db.VarChar(20)
+
+  // TVA (optionnelle par dossier)
+  tva_active                     Boolean @default(false)
+
+  // Modèles de factures
+  mention_obligatoire_fact4      String? @db.VarChar(200)
+  com_entete_page_factu          String? @db.VarChar(400)
+  com_pied_page_factu            String? @db.VarChar(400)
+  logo_asso                      String? @db.LongText
+
+  // Compteur de numérotation interne des factures
+  facture_dernier_numero_interne Int     @default(0)
+
+  // Note interne
+  note_pense_bete                String? @db.Text
+
+  @@map("parametre_general")
+}
+
+// ─── Configuration e-mail par utilisateur ────────────────────────────────────
+
+model EmailConfig {
+  id_email_config        Int         @id @default(autoincrement())
+  id_utilisateur         Int         @unique
+  utilisateur            Utilisateur @relation(fields: [id_utilisateur], references: [id_utilisateur], onDelete: Cascade)
+  smtp_adresse           String?     @db.VarChar(255)
+  smtp_user              String?     @db.VarChar(255)
+  smtp_mot_de_passe      String?     @db.VarChar(255)
+  smtp_num_port          Int?
+  smtp_option_secu       String?     @db.VarChar(10)
+  email_expediteur       String?     @db.VarChar(260)
+  email_cc               String?     @db.VarChar(260)
+  email_cci              String?     @db.VarChar(260)
+  email_envoi_fact_objet String?     @db.VarChar(255)
+  email_envoi_fact_corps String?     @db.LongText
+  signature_img          String?     @db.LongText
+  signature_hauteur      Int?
+  signature_largeur      Int?
+  oauth_client_id        String?     @db.Text
+  oauth_client_secret    String?     @db.Text
+  oauth_url_auth         String?     @db.Text
+  oauth_url_token        String?     @db.Text
+  oauth_url_redirect     String?     @db.Text
+  oauth_scope            String?     @db.Text
+  oauth_type_reponse     String?     @db.VarChar(50)
+  oauth_refresh_token    String?     @db.Text
+
+  @@map("email_config")
+}

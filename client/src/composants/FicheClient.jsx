@@ -1,14 +1,13 @@
 // =====================================================================
-//  Modale / panneau de fiche client (création et modification).
-//  S'affiche par-dessus la liste, comme dans l'application d'origine.
+//  Modale fiche client : création et modification.
 // =====================================================================
 import { useState } from 'react';
+import { X, Loader2 } from 'lucide-react';
 import ChampAutoVille from './ChampAutoVille.jsx';
 
 const CIVILITES = ['', 'M.', 'Mme', 'Mlle', 'Dr', 'Me'];
 
 export default function FicheClient({ client, peutModifier, onValider, onFermer }) {
-  // Initialise le formulaire avec les données existantes ou des valeurs vides.
   const [form, setForm] = useState({
     civilite:    client?.civilite    ?? '',
     nom:         client?.nom         ?? '',
@@ -23,10 +22,9 @@ export default function FicheClient({ client, peutModifier, onValider, onFermer 
     mobile:      client?.mobile      ?? '',
     email:       client?.email       ?? '',
   });
-  const [erreur, setErreur] = useState('');
+  const [erreur, setErreur]   = useState('');
   const [enCours, setEnCours] = useState(false);
 
-  // Mise à jour générique d'un champ du formulaire.
   const maj = (champ) => (e) => setForm((f) => ({ ...f, [champ]: e.target.value }));
 
   async function soumettre(e) {
@@ -44,55 +42,75 @@ export default function FicheClient({ client, peutModifier, onValider, onFermer 
     }
   }
 
-  const classeInput = `w-full border border-slate-300 rounded-lg px-3 py-2 text-sm
-    focus:outline-none focus:ring-2 focus:ring-primaire disabled:bg-slate-50 disabled:text-slate-400`;
+  const classeInput = `w-full border border-gray-200 dark:border-gray-700 rounded-xl px-3 py-2.5 text-sm
+    bg-white dark:bg-gray-800 dark:text-gray-100
+    focus:outline-none focus:ring-2 focus:ring-primaire
+    disabled:bg-gray-50 dark:disabled:bg-gray-900 disabled:text-gray-400 dark:disabled:text-gray-600`;
 
-  const titre = client ? `${client.civilite ?? ''} ${client.nom ?? ''} ${client.prenom ?? ''}`.trim() : 'Nouveau client';
+  const classeLabel = 'block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1.5';
+
+  const titre = client
+    ? [client.civilite, client.nom, client.prenom].filter(Boolean).join(' ')
+    : 'Nouveau client';
 
   return (
-    // Fond semi-transparent derrière la modale.
-    <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-40 p-4">
-      <div className="bg-white rounded-2xl shadow-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
-        <div className="flex items-center justify-between p-5 border-b border-slate-100">
-          <h2 className="text-lg font-semibold">{titre}</h2>
-          {/* Affiche le statut archivé si pertinent */}
-          {!!client?.archive && (
-            <span className="text-xs bg-amber-100 text-amber-700 px-2 py-1 rounded-full">Archivé</span>
-          )}
+    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+      <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+
+        {/* En-tête */}
+        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 dark:border-gray-700/60">
+          <div className="flex items-center gap-2">
+            <h2 className="text-lg font-semibold text-gray-800 dark:text-gray-100">{titre}</h2>
+            {!!client?.archive && (
+              <span className="text-xs bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 px-2 py-0.5 rounded-full font-medium">
+                Archivé
+              </span>
+            )}
+          </div>
+          <button
+            onClick={onFermer}
+            className="p-1.5 rounded-lg text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+          >
+            <X size={18} />
+          </button>
         </div>
 
-        {/* autoComplete="off" sur le form + "nope" sur les champs pour bloquer
-            la saisie automatique du navigateur (qui confond ce formulaire pro
-            avec un formulaire d'inscription grand public). */}
-        <form onSubmit={soumettre} autoComplete="off" className="p-5 space-y-4">
-          {erreur && <div className="text-sm text-red-600 bg-red-50 rounded-lg p-3">{erreur}</div>}
+        {/* autoComplete="off" + "nope" sur les champs pour bloquer la saisie auto du navigateur */}
+        <form onSubmit={soumettre} autoComplete="off" className="px-6 py-5 space-y-4">
+
+          {erreur && (
+            <div className="text-sm text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20 rounded-xl px-4 py-3">
+              {erreur}
+            </div>
+          )}
 
           {/* Civilité + Nom + Prénom */}
           <div className="flex gap-3">
             <div className="w-28">
-              <label className="block text-xs text-slate-500 mb-1">Civilité</label>
+              <label className={classeLabel}>Civilité</label>
               <select value={form.civilite} onChange={maj('civilite')} disabled={!peutModifier}
                 className={classeInput}>
                 {CIVILITES.map(c => <option key={c} value={c}>{c}</option>)}
               </select>
             </div>
             <div className="flex-1">
-              <label className="block text-xs text-slate-500 mb-1">Nom <span className="text-red-500">*</span></label>
-              <input value={form.nom} onChange={maj('nom')} disabled={!peutModifier} autoComplete="nope" className={classeInput} />
+              <label className={classeLabel}>Nom <span className="text-red-500">*</span></label>
+              <input value={form.nom} onChange={maj('nom')} disabled={!peutModifier}
+                autoComplete="nope" className={classeInput} />
             </div>
             <div className="flex-1">
-              <label className="block text-xs text-slate-500 mb-1">Prénom</label>
-              <input value={form.prenom} onChange={maj('prenom')} disabled={!peutModifier} autoComplete="nope" className={classeInput} />
+              <label className={classeLabel}>Prénom</label>
+              <input value={form.prenom} onChange={maj('prenom')} disabled={!peutModifier}
+                autoComplete="nope" className={classeInput} />
             </div>
           </div>
 
           {/* Adresses */}
-          {['adresse1', 'adresse2', 'adresse3'].map((champ, i) => (
+          {[['adresse1', 'Adresse'], ['adresse2', 'Adresse (suite)'], ['adresse3', 'Adresse (suite 2)']].map(([champ, libelle]) => (
             <div key={champ}>
-              <label className="block text-xs text-slate-500 mb-1">
-                {i === 0 ? 'Adresse' : `Adresse (suite ${i})`}
-              </label>
-              <input value={form[champ]} onChange={maj(champ)} disabled={!peutModifier} autoComplete="nope" className={classeInput} />
+              <label className={classeLabel}>{libelle}</label>
+              <input value={form[champ]} onChange={maj(champ)} disabled={!peutModifier}
+                autoComplete="nope" className={classeInput} />
             </div>
           ))}
 
@@ -108,39 +126,44 @@ export default function FicheClient({ client, peutModifier, onValider, onFermer 
 
           {/* Pays */}
           <div>
-            <label className="block text-xs text-slate-500 mb-1">Pays</label>
-            <input value={form.pays} onChange={maj('pays')} disabled={!peutModifier} className={classeInput} />
+            <label className={classeLabel}>Pays</label>
+            <input value={form.pays} onChange={maj('pays')} disabled={!peutModifier}
+              className={classeInput} />
           </div>
 
           {/* Téléphones */}
           <div className="flex gap-3">
             <div className="flex-1">
-              <label className="block text-xs text-slate-500 mb-1">Téléphone</label>
-              <input value={form.telephone} onChange={maj('telephone')} disabled={!peutModifier} autoComplete="nope" className={classeInput} />
+              <label className={classeLabel}>Téléphone</label>
+              <input value={form.telephone} onChange={maj('telephone')} disabled={!peutModifier}
+                autoComplete="nope" className={classeInput} />
             </div>
             <div className="flex-1">
-              <label className="block text-xs text-slate-500 mb-1">Autre téléphone</label>
-              <input value={form.mobile} onChange={maj('mobile')} disabled={!peutModifier} autoComplete="nope" className={classeInput} />
+              <label className={classeLabel}>Autre téléphone</label>
+              <input value={form.mobile} onChange={maj('mobile')} disabled={!peutModifier}
+                autoComplete="nope" className={classeInput} />
             </div>
           </div>
 
           {/* E-mail */}
           <div>
-            <label className="block text-xs text-slate-500 mb-1">E-mail</label>
-            <input type="email" value={form.email} onChange={maj('email')} disabled={!peutModifier} autoComplete="nope" className={classeInput} />
+            <label className={classeLabel}>E-mail</label>
+            <input type="email" value={form.email} onChange={maj('email')} disabled={!peutModifier}
+              autoComplete="nope" className={classeInput} />
           </div>
 
           {/* Boutons */}
           <div className="flex gap-3 pt-2">
             {peutModifier && (
               <button type="submit" disabled={enCours}
-                className="flex-1 bg-primaire hover:bg-primaire-fonce text-white font-semibold py-2 rounded-lg transition disabled:opacity-60">
+                className="flex-1 flex items-center justify-center gap-2 bg-primaire hover:bg-primaire-fonce text-white font-semibold py-2.5 rounded-xl transition-colors disabled:opacity-60">
+                {enCours && <Loader2 size={15} className="animate-spin" />}
                 {enCours ? 'Enregistrement…' : 'Valider'}
               </button>
             )}
             <button type="button" onClick={onFermer}
-              className="flex-1 border border-slate-300 text-slate-600 font-medium py-2 rounded-lg hover:bg-slate-50 transition">
-              {peutModifier ? 'Annuler et fermer' : 'Fermer'}
+              className="flex-1 border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-400 font-medium py-2.5 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
+              {peutModifier ? 'Annuler' : 'Fermer'}
             </button>
           </div>
         </form>

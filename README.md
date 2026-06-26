@@ -62,14 +62,14 @@ Ouvrir http://localhost:5173 et se connecter avec le compte créé à l'étape 2
 ## Avancement (développement par lots)
 
 - [x] **Lot 1 — Fondations initiales** : schéma BDD, serveur Express, auth JWT + droits, page de connexion, disposition générale. *(absorbé par Lot 0)*
-- [ ] **Lot 0 — Refonte des fondations** *(en cours)*
+- [x] **Lot 0 — Refonte des fondations**
   - [x] 0a — Prisma ORM + migrations (remplace mysql2 + schema SQL manuel)
-  - [ ] 0b — Schéma étendu (champs TVA, identité facture : `client_*`, `asso_*`)
-  - [ ] 0c — Support TVA optionnel (taux configurables, calculs HT/TVA/TTC)
-  - [ ] 0d — Multi-tenant Dossiers (login 2 étapes, PrismaClient dynamique par dossier)
-  - [ ] 0e — Licences Exoria (seats concurrents, heartbeat, release ; bypass DEV)
-  - [ ] 0f — Modernisation UI (Lucide React, responsive, dark mode auto + toggle)
-- [ ] **Lot 2 — Clients** : liste, fiche, archivage, auto-complétion ville.
+  - [x] 0b — Schéma étendu (champs TVA, identité facture : `client_*`, `asso_*`)
+  - [x] 0c — Support TVA optionnel (taux configurables, calculs HT/TVA/TTC)
+  - [x] 0d — Multi-tenant Dossiers (login 2 étapes, PrismaClient dynamique par dossier)
+  - [x] 0e — Licences Exoria (seats concurrents, heartbeat, release ; bypass DEV)
+  - [x] 0f — Modernisation UI (Lucide React, responsive, dark mode auto + toggle)
+- [x] **Lot 2 — Clients** : liste, fiche, archivage, auto-complétion ville.
 - [ ] **Lot 3 — Configuration** : 6 onglets, dont TVA et champs association.
 - [ ] **Lot 4 — Factures / Brouillons** : lignes TVA, calculs conditionnels, champs identité figés.
 - [ ] **Lot 5 — Paiements**.

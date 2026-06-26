@@ -1,40 +1,41 @@
 // =====================================================================
 //  Champ avec auto-complétion ville / code postal.
-//  Quand l'utilisateur tape dans l'un des champs, les suggestions
-//  s'affichent et remplissent automatiquement l'autre champ.
 // =====================================================================
 import { useState, useRef } from 'react';
 import { clientService } from '../services/clientService.js';
 
 export default function ChampAutoVille({ codePostal, ville, onChange, disabled }) {
-  const [suggestionsVilles, setSuggestionsVilles] = useState([]);
+  const [suggestions, setSuggestions] = useState([]);
   const timerRef = useRef(null);
 
-  // Déclenche la recherche avec un léger délai pour ne pas surcharger l'API.
   function rechercherAvecDelai(type, valeur) {
     clearTimeout(timerRef.current);
     timerRef.current = setTimeout(async () => {
-      if (valeur.length < 2) { setSuggestionsVilles([]); return; }
+      if (valeur.length < 2) { setSuggestions([]); return; }
       const resultats = await clientService.villes(
         type === 'cp' ? { cp: valeur } : { nom: valeur }
       );
-      setSuggestionsVilles(resultats);
+      setSuggestions(resultats);
     }, 300);
   }
 
-  function choisirVille(suggestion) {
-    onChange({ codePostal: suggestion.code_postal, ville: suggestion.nom_ville });
-    setSuggestionsVilles([]);
+  function choisirVille(s) {
+    onChange({ codePostal: s.code_postal, ville: s.nom_ville });
+    setSuggestions([]);
   }
 
-  const classeInput = `w-full border border-slate-300 rounded-lg px-3 py-2 text-sm
-    focus:outline-none focus:ring-2 focus:ring-primaire disabled:bg-slate-50 disabled:text-slate-400`;
+  const classeInput = `w-full border border-gray-200 dark:border-gray-700 rounded-xl px-3 py-2.5 text-sm
+    bg-white dark:bg-gray-800 dark:text-gray-100
+    focus:outline-none focus:ring-2 focus:ring-primaire
+    disabled:bg-gray-50 dark:disabled:bg-gray-900 disabled:text-gray-400 dark:disabled:text-gray-600`;
+
+  const classeLabel = 'block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1.5';
 
   return (
     <div className="flex gap-3 relative">
-      {/* Champ code postal */}
+      {/* Code postal */}
       <div className="w-28">
-        <label className="block text-xs text-slate-500 mb-1">Code postal</label>
+        <label className={classeLabel}>Code postal</label>
         <input
           value={codePostal}
           disabled={disabled}
@@ -46,9 +47,9 @@ export default function ChampAutoVille({ codePostal, ville, onChange, disabled }
         />
       </div>
 
-      {/* Champ ville */}
+      {/* Ville */}
       <div className="flex-1">
-        <label className="block text-xs text-slate-500 mb-1">Ville</label>
+        <label className={classeLabel}>Ville</label>
         <input
           value={ville}
           disabled={disabled}
@@ -60,17 +61,18 @@ export default function ChampAutoVille({ codePostal, ville, onChange, disabled }
         />
       </div>
 
-      {/* Liste déroulante de suggestions */}
-      {suggestionsVilles.length > 0 && (
-        <ul className="absolute top-full left-0 mt-1 z-20 bg-white border border-slate-200
-                        rounded-lg shadow-lg max-h-48 overflow-y-auto w-full">
-          {suggestionsVilles.map((s, i) => (
+      {/* Suggestions */}
+      {suggestions.length > 0 && (
+        <ul className="absolute top-full left-0 mt-1 z-30 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl shadow-lg max-h-48 overflow-y-auto w-full">
+          {suggestions.map((s, i) => (
             <li
               key={i}
               onMouseDown={() => choisirVille(s)}
-              className="px-3 py-2 text-sm hover:bg-primaire-clair cursor-pointer"
+              className="px-4 py-2.5 text-sm text-gray-700 dark:text-gray-200 hover:bg-primaire/10 dark:hover:bg-primaire/20 cursor-pointer first:rounded-t-xl last:rounded-b-xl"
             >
-              {s.code_postal} — {s.nom_ville}
+              <span className="font-medium">{s.code_postal}</span>
+              <span className="text-gray-400 mx-1.5">—</span>
+              {s.nom_ville}
             </li>
           ))}
         </ul>
