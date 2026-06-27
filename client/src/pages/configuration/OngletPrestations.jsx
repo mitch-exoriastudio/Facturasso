@@ -4,6 +4,7 @@
 import { useState, useEffect } from 'react';
 import { configService } from '../../services/configService.js';
 import ModalConfirmation from '../../composants/ModalConfirmation.jsx';
+import ChampNumerique from '../../composants/ChampNumerique.jsx';
 
 const CL = 'border border-gray-200 dark:border-gray-700 rounded-lg px-2 py-1.5 text-sm bg-white dark:bg-gray-700 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-primaire';
 
@@ -86,7 +87,7 @@ export default function OngletPrestations() {
             <input value={p.reference ?? ''}
               onChange={e => majLigne(p.id_prestation, 'reference', e.target.value.toUpperCase())}
               placeholder="Réf." className={CL + ' w-28'} autoComplete="nope" />
-            <input type="number" step="0.01" value={p.prix_unitaire ?? 0}
+            <ChampNumerique step={0.01} value={p.prix_unitaire ?? 0} min={0}
               onChange={e => majLigne(p.id_prestation, 'prix_unitaire', e.target.value)}
               className={CL + ' w-24 text-right'} />
             <span className="text-sm text-gray-400 dark:text-gray-500">€</span>

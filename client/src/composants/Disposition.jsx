@@ -3,12 +3,13 @@
 //  Responsive (hamburger sur mobile) + dark mode (auto OS + toggle).
 // =====================================================================
 import { useState, useEffect } from 'react';
-import { NavLink, useNavigate } from 'react-router-dom';
+import { NavLink, useNavigate, useLocation } from 'react-router-dom';
 import {
   Home, FileText, CreditCard, Users, Mail, Settings,
   LogOut, Menu, X, Sun, Moon, Building2,
 } from 'lucide-react';
 import { useAuth } from '../contextes/ContexteAuth.jsx';
+import { useGardeNav } from '../contextes/ContexteGardeNav.jsx';
 
 // ── Hook dark mode ────────────────────────────────────────────────────
 function useModeSombre() {
@@ -43,8 +44,15 @@ function useModeSombre() {
 export default function Disposition({ children }) {
   const { utilisateur, dossier, seDeconnecter } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
+  const { tenterNavigation } = useGardeNav();
   const { sombre, basculer } = useModeSombre();
   const [sidebarOuverte, setSidebarOuverte] = useState(false);
+
+  function naviguerAvecGarde(vers) {
+    setSidebarOuverte(false);
+    tenterNavigation(() => navigate(vers));
+  }
 
   async function deconnexion() {
     await seDeconnecter();
@@ -95,30 +103,27 @@ export default function Disposition({ children }) {
       {/* Navigation */}
       <nav className="flex-1 px-3 pt-3 space-y-0.5 overflow-y-auto">
         {liens.filter(l => l.visible).map(({ vers, libelle, Icone }) => (
-          <NavLink
+          <button
             key={vers}
-            to={vers}
-            end={vers === '/'}
-            className={lienClasse}
-            onClick={() => setSidebarOuverte(false)}
+            onClick={() => naviguerAvecGarde(vers)}
+            className={'w-full ' + lienClasse({ isActive: location.pathname === vers || (vers !== '/' && location.pathname.startsWith(vers)) })}
           >
             <Icone size={17} />
             {libelle}
-          </NavLink>
+          </button>
         ))}
       </nav>
 
       {/* Pied de sidebar */}
       <div className="px-3 pb-4 space-y-1 border-t border-gray-100 dark:border-gray-700/60 pt-3">
         {(estAdmin || utilisateur?.droit_config) && (
-          <NavLink
-            to="/configuration"
-            className={lienClasse}
-            onClick={() => setSidebarOuverte(false)}
+          <button
+            onClick={() => naviguerAvecGarde('/configuration')}
+            className={'w-full ' + lienClasse({ isActive: location.pathname === '/configuration' })}
           >
             <Settings size={17} />
             Configuration
-          </NavLink>
+          </button>
         )}
 
         <div className="flex items-center justify-between px-3 pt-2">
@@ -136,7 +141,7 @@ export default function Disposition({ children }) {
         </div>
 
         <button
-          onClick={deconnexion}
+          onClick={() => tenterNavigation(deconnexion)}
           className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-red-500 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
         >
           <LogOut size={17} />

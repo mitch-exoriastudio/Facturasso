@@ -1,20 +1,29 @@
 // =====================================================================
 //  Onglet 1 — Mentions documents (informations de l'association + logo)
 // =====================================================================
-import { useState } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { configService } from '../../services/configService.js';
 
 const CL = 'w-full border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-2 text-sm bg-white dark:bg-gray-800 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-primaire';
 const CL_AREA = CL + ' resize-none';
 
-export default function OngletMentions({ params, onMaj }) {
+function estModifie(a, b) {
+  return JSON.stringify(a) !== JSON.stringify(b);
+}
+
+export default function OngletMentions({ params, onMaj, onModifie }) {
   const [form, setForm] = useState({ ...params });
-  const [sauvegarde, setSauvegarde] = useState('');
+  const [reference, setReference] = useState({ ...params });
+  const [sauvegarde, setSauvegarde] = useState(false);
   const [erreur, setErreur] = useState('');
+  const [enCours, setEnCours] = useState(false);
+
+  const modifie = useMemo(() => estModifie(form, reference), [form, reference]);
+
+  useEffect(() => { onModifie?.(modifie); }, [modifie]);
 
   const maj = (champ) => (e) => setForm(f => ({ ...f, [champ]: e.target.value }));
 
-  // Chargement du logo depuis le disque local → conversion en base64.
   function chargerLogo(e) {
     const fichier = e.target.files[0];
     if (!fichier) return;
@@ -25,92 +34,150 @@ export default function OngletMentions({ params, onMaj }) {
 
   async function sauvegarder(e) {
     e.preventDefault();
-    setSauvegarde(''); setErreur('');
+    setSauvegarde(false); setErreur('');
+    setEnCours(true);
     try {
       await configService.putParametres(form);
+      setReference({ ...form });
       onMaj(form);
-      setSauvegarde('Enregistré !');
-      setTimeout(() => setSauvegarde(''), 3000);
+      setSauvegarde(true);
+      setTimeout(() => setSauvegarde(false), 2000);
     } catch { setErreur('Erreur lors de la sauvegarde.'); }
+    finally { setEnCours(false); }
   }
 
   return (
-    <form onSubmit={sauvegarder} autoComplete="off" className="space-y-5 max-w-4xl">
-      {sauvegarde && <div className="text-sm text-green-700 dark:text-green-400 bg-green-50 dark:bg-green-900/20 rounded-lg p-3">{sauvegarde}</div>}
+    <form onSubmit={sauvegarder} autoComplete="off" className="space-y-5 max-w-5xl pb-20">
       {erreur && <div className="text-sm text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20 rounded-lg p-3">{erreur}</div>}
 
-      <div className="grid grid-cols-2 gap-6">
-        {/* Colonne gauche */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+
+        {/* ── Colonne gauche : identité & coordonnées ── */}
         <div className="space-y-4">
-          {/* Logo */}
-          <div>
-            <label className="block text-xs text-gray-500 dark:text-gray-400 mb-1">Logo</label>
-            <div className="flex items-center gap-3">
+
+          <Section titre="Identité">
+            <Champ label="Raison sociale" value={form.asso_raison_sociale} onChange={maj('asso_raison_sociale')} />
+            <Champ label="Statut juridique (ex : Association loi 1901)" value={form.asso_statut} onChange={maj('asso_statut')} />
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <Champ label="Nom du contact" value={form.asso_contact_nom} onChange={maj('asso_contact_nom')} />
+              <Champ label="Prénom du contact" value={form.asso_contact_prenom} onChange={maj('asso_contact_prenom')} />
+            </div>
+          </Section>
+
+          <Section titre="Identifiants légaux">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <Champ label="SIREN" value={form.asso_siren} onChange={maj('asso_siren')} />
+              <Champ label="SIRET" value={form.asso_siret} onChange={maj('asso_siret')} />
+              <Champ label="RNA (n° de déclaration)" value={form.rna} onChange={maj('rna')} />
+              <Champ label="Code NAF / APE" value={form.asso_naf} onChange={maj('asso_naf')} />
+            </div>
+            <Champ label="N° TVA intracommunautaire" value={form.asso_num_tva_intra} onChange={maj('asso_num_tva_intra')} />
+          </Section>
+
+          <Section titre="Adresse">
+            <Champ label="Adresse ligne 1" value={form.asso_adresse1} onChange={maj('asso_adresse1')} />
+            <Champ label="Adresse ligne 2" value={form.asso_adresse2} onChange={maj('asso_adresse2')} />
+            <Champ label="Adresse ligne 3" value={form.asso_adresse3} onChange={maj('asso_adresse3')} />
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <Champ label="Code postal" value={form.asso_code_postal} onChange={maj('asso_code_postal')} />
+              <div className="sm:col-span-2">
+                <Champ label="Ville" value={form.asso_ville} onChange={maj('asso_ville')} />
+              </div>
+            </div>
+            <Champ label="Pays" value={form.asso_pays} onChange={maj('asso_pays')} />
+          </Section>
+
+          <Section titre="Contact">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <Champ label="Téléphone" value={form.asso_tel} onChange={maj('asso_tel')} />
+              <Champ label="Téléphone 2" value={form.asso_tel2} onChange={maj('asso_tel2')} />
+              <Champ label="E-mail" value={form.asso_email} onChange={maj('asso_email')} />
+              <Champ label="E-mail 2" value={form.asso_email2} onChange={maj('asso_email2')} />
+            </div>
+          </Section>
+
+        </div>
+
+        {/* ── Colonne droite : logo + mentions documents ── */}
+        <div className="space-y-4">
+
+          <Section titre="Logo">
+            <div className="flex flex-col gap-3">
               {form.logo_asso
-                ? <img src={form.logo_asso} alt="Logo" className="h-16 object-contain border border-gray-200 dark:border-gray-700 rounded" />
-                : <div className="h-16 w-24 bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded flex items-center justify-center text-xs text-gray-400 dark:text-gray-500">Aucun logo</div>
+                ? <img src={form.logo_asso} alt="Logo" className="max-h-48 w-full object-contain border border-gray-200 dark:border-gray-700 rounded-lg p-2 bg-white dark:bg-gray-900" />
+                : <div className="h-48 w-full bg-gray-100 dark:bg-gray-800 border border-dashed border-gray-300 dark:border-gray-600 rounded-lg flex items-center justify-center text-sm text-gray-400 dark:text-gray-500">Aucun logo chargé</div>
               }
-              <div className="flex flex-col gap-1">
-                <label className="cursor-pointer bg-primaire-clair dark:bg-primaire/20 text-primaire-fonce dark:text-primaire text-xs font-medium px-3 py-1.5 rounded-lg hover:bg-primaire hover:text-white dark:hover:bg-primaire dark:hover:text-white transition">
+              <div className="flex justify-end gap-3">
+                <label className="cursor-pointer bg-primaire-clair dark:bg-primaire/20 text-primaire-fonce dark:text-primaire text-xs font-medium px-4 py-2 rounded-lg hover:bg-primaire hover:text-white dark:hover:bg-primaire dark:hover:text-white transition">
                   Charger un logo
                   <input type="file" accept="image/*" onChange={chargerLogo} className="hidden" />
                 </label>
                 {form.logo_asso && (
                   <button type="button" onClick={() => setForm(f => ({ ...f, logo_asso: null }))}
-                    className="text-xs text-red-500 hover:underline text-left">Supprimer</button>
+                    className="text-xs text-red-500 hover:text-red-700 dark:hover:text-red-400 transition">
+                    Supprimer
+                  </button>
                 )}
               </div>
             </div>
-          </div>
+          </Section>
 
-          <Champ label="Raison sociale" value={form.raison_sociale_asso} onChange={maj('raison_sociale_asso')} />
-          <div className="grid grid-cols-2 gap-3">
-            <Champ label="Activité / code NAF" value={form.activite_naf_asso} onChange={maj('activite_naf_asso')} />
-            <Champ label="TVA intracommunautaire" value={form.tva_intra_asso} onChange={maj('tva_intra_asso')} />
-            <Champ label="SIRET" value={form.siret_asso} onChange={maj('siret_asso')} />
-            <Champ label="RNA" value={form.rna} onChange={maj('rna')} />
-          </div>
-          <Champ label="Adresse" value={form.adresse_asso1} onChange={maj('adresse_asso1')} />
-          <Champ label="Adresse (suite)" value={form.adresse_asso2} onChange={maj('adresse_asso2')} />
-          <div className="grid grid-cols-2 gap-3">
-            <Champ label="Code postal" value={form.code_postal_asso} onChange={maj('code_postal_asso')} />
-            <Champ label="Ville" value={form.ville_association} onChange={maj('ville_association')} />
-            <Champ label="Téléphone" value={form.tel_asso1} onChange={maj('tel_asso1')} />
-            <Champ label="Autre téléphone" value={form.tel_asso2} onChange={maj('tel_asso2')} />
-            <Champ label="E-mail" value={form.email_asso1} onChange={maj('email_asso1')} />
-            <Champ label="Autre e-mail" value={form.email_asso2} onChange={maj('email_asso2')} />
-          </div>
-        </div>
+          <Section titre="Textes imprimés sur les factures">
+            <div>
+              <label className="block text-xs text-gray-500 dark:text-gray-400 mb-1">Commentaire en-tête</label>
+              <textarea value={form.com_entete_page_factu ?? ''} onChange={maj('com_entete_page_factu')}
+                rows={3} className={CL_AREA} />
+            </div>
+            <div>
+              <label className="block text-xs text-gray-500 dark:text-gray-400 mb-1">Commentaire pied de page</label>
+              <textarea value={form.com_pied_page_factu ?? ''} onChange={maj('com_pied_page_factu')}
+                rows={3} className={CL_AREA} />
+            </div>
+            <div>
+              <label className="block text-xs text-gray-500 dark:text-gray-400 mb-1">Mention obligatoire (IBAN, délai paiement…)</label>
+              <textarea value={form.mention_obligatoire_fact4 ?? ''} onChange={maj('mention_obligatoire_fact4')}
+                rows={2} className={CL_AREA} />
+            </div>
+            <div>
+              <label className="block text-xs text-gray-500 dark:text-gray-400 mb-1">Autre mention 1</label>
+              <textarea value={form.asso_autre_mention1 ?? ''} onChange={maj('asso_autre_mention1')}
+                rows={2} className={CL_AREA} />
+            </div>
+            <div>
+              <label className="block text-xs text-gray-500 dark:text-gray-400 mb-1">Autre mention 2</label>
+              <textarea value={form.asso_autre_mention2 ?? ''} onChange={maj('asso_autre_mention2')}
+                rows={2} className={CL_AREA} />
+            </div>
+          </Section>
 
-        {/* Colonne droite */}
-        <div className="space-y-4">
-          <div>
-            <label className="block text-xs text-gray-500 dark:text-gray-400 mb-1">Commentaire en-tête de facture</label>
-            <textarea value={form.com_entete_page_factu} onChange={maj('com_entete_page_factu')}
-              rows={4} className={CL_AREA} />
-          </div>
-          <div>
-            <label className="block text-xs text-gray-500 dark:text-gray-400 mb-1">Commentaire bas de page de facture</label>
-            <textarea value={form.com_pied_page_factu} onChange={maj('com_pied_page_factu')}
-              rows={4} className={CL_AREA} />
-          </div>
-          <div>
-            <label className="block text-xs text-gray-500 dark:text-gray-400 mb-1">Mentions diverses (IBAN, etc.)</label>
-            <textarea value={form.mention_obligatoire_fact4} onChange={maj('mention_obligatoire_fact4')}
-              rows={3} className={CL_AREA} />
-          </div>
         </div>
       </div>
 
-      <button type="submit"
-        className="bg-primaire hover:bg-primaire-fonce dark:bg-primaire-fonce dark:hover:bg-primaire text-white font-semibold px-6 py-2 rounded-lg transition">
-        Enregistrer
-      </button>
+      {/* Barre sticky — modifications non enregistrées */}
+      <div className={`fixed bottom-0 left-0 lg:left-64 right-0 z-40 transition-transform duration-300 ${modifie || sauvegarde ? 'translate-y-0' : 'translate-y-full'}`}>
+        <div className="bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-700 shadow-lg px-6 py-3 flex items-center gap-4">
+          <button type="submit" disabled={enCours || !modifie}
+            className="bg-primaire hover:bg-primaire-fonce dark:bg-primaire-fonce dark:hover:bg-primaire disabled:opacity-50 disabled:cursor-not-allowed text-white font-semibold px-5 py-2 rounded-lg transition whitespace-nowrap">
+            {enCours ? 'Enregistrement…' : 'Enregistrer'}
+          </button>
+          <span className={`text-sm ${sauvegarde ? 'text-green-600 dark:text-green-400' : 'text-amber-600 dark:text-amber-400'}`}>
+            {sauvegarde ? 'Enregistré !' : 'Modifications non enregistrées'}
+          </span>
+        </div>
+      </div>
     </form>
   );
 }
 
-// Petit composant helper pour éviter la répétition.
+function Section({ titre, children }) {
+  return (
+    <div className="space-y-3">
+      <h3 className="text-xs font-semibold uppercase tracking-wide text-gray-400 dark:text-gray-500 border-b border-gray-100 dark:border-gray-700 pb-1">{titre}</h3>
+      {children}
+    </div>
+  );
+}
+
 function Champ({ label, value, onChange }) {
   return (
     <div>

@@ -4,6 +4,7 @@
 // =====================================================================
 import { useState } from 'react';
 import { configService } from '../../services/configService.js';
+import ChampNumerique from '../../composants/ChampNumerique.jsx';
 
 export default function OngletSuperviseur({ dernierNumero, onMajNumero }) {
   const [numero, setNumero] = useState(dernierNumero ?? 0);
@@ -46,7 +47,7 @@ export default function OngletSuperviseur({ dernierNumero, onMajNumero }) {
         {message && <div className="text-sm text-green-700 dark:text-green-400 bg-green-50 dark:bg-green-900/20 rounded-lg p-3">{message}</div>}
         {erreur && <div className="text-sm text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20 rounded-lg p-3">{erreur}</div>}
         <div className="flex gap-3 items-center">
-          <input type="number" value={numero} onChange={e => setNumero(e.target.value)} min={0}
+          <ChampNumerique value={numero} onChange={e => setNumero(e.target.value)} min={0}
             className="w-36 border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-2 text-sm bg-white dark:bg-gray-700 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-primaire" />
           <button onClick={sauvegarderNumero}
             className="bg-primaire hover:bg-primaire-fonce dark:bg-primaire-fonce dark:hover:bg-primaire text-white font-semibold px-4 py-2 rounded-lg text-sm transition">

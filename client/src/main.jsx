@@ -4,16 +4,17 @@ import ReactDOM from 'react-dom/client';
 import { BrowserRouter } from 'react-router-dom';
 import App from './App.jsx';
 import { FournisseurAuth } from './contextes/ContexteAuth.jsx';
+import { FournisseurGardeNav } from './contextes/ContexteGardeNav.jsx';
 import './index.css';
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
-    {/* BrowserRouter : gestion de la navigation entre les pages */}
     <BrowserRouter>
-      {/* FournisseurAuth : rend l'utilisateur connecté accessible partout */}
-      <FournisseurAuth>
-        <App />
-      </FournisseurAuth>
+      <FournisseurGardeNav>
+        <FournisseurAuth>
+          <App />
+        </FournisseurAuth>
+      </FournisseurGardeNav>
     </BrowserRouter>
   </React.StrictMode>
 );
