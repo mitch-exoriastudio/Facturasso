@@ -58,6 +58,7 @@ const CHAMPS_UTILISATEUR = {
   nom_utilisateur:      true,
   droit_admin:          true,
   compte_desactive:     true,
+  compte_protege:       true,
   droit_consult_fac:    true,
   droit_ajout_fac:      true,
   droit_consult_paiem:  true,
@@ -66,6 +67,10 @@ const CHAMPS_UTILISATEUR = {
   droit_ajout_clients:  true,
   droit_config:         true,
 };
+
+export async function lireUtilisateur(id) {
+  return prisma.utilisateur.findUnique({ where: { id_utilisateur: id }, select: CHAMPS_UTILISATEUR });
+}
 
 export async function listerUtilisateurs(avecDesactives = false) {
   return prisma.utilisateur.findMany({

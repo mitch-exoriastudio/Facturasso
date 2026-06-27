@@ -5,7 +5,7 @@ import bcrypt from 'bcryptjs';
 import { parse as parseCsv } from 'csv-parse/sync';
 import {
   lireParametres, sauvegarderParametres, mettreAJourDernierNumero,
-  listerUtilisateurs, creerUtilisateur, modifierUtilisateur,
+  lireUtilisateur, listerUtilisateurs, creerUtilisateur, modifierUtilisateur,
   lireEmailConfig, sauvegarderEmailConfig,
   listerPrestations, sauvegarderPrestation, supprimerPrestation,
   listerModesPaiement, sauvegarderModePaiement, supprimerModePaiement,
@@ -61,10 +61,22 @@ export async function postUtilisateur(req, res, next) {
 // PUT /api/config/utilisateurs/:id
 export async function putUtilisateur(req, res, next) {
   try {
+    const idCible = parseInt(req.params.id, 10);
+    const idConnecte = req.utilisateur.id_utilisateur;
+
+    const cible = await lireUtilisateur(idCible);
+    if (!cible) return res.status(404).json({ message: 'Utilisateur introuvable.' });
+    if (cible.compte_protege && idCible !== idConnecte) {
+      return res.status(403).json({ message: 'Ce compte est protégé et ne peut être modifié que par son propriétaire.' });
+    }
+    if (cible.compte_protege && req.body.compte_desactive) {
+      return res.status(403).json({ message: 'Un compte protégé ne peut pas être désactivé.' });
+    }
+
     const hache = req.body.mot_de_passe
       ? await bcrypt.hash(req.body.mot_de_passe, 10)
       : null;
-    await modifierUtilisateur(req.params.id, req.body, hache);
+    await modifierUtilisateur(idCible, req.body, hache);
     res.json({ message: 'Utilisateur mis à jour.' });
   } catch (err) { next(err); }
 }
@@ -72,14 +84,14 @@ export async function putUtilisateur(req, res, next) {
 // GET /api/config/email/:id
 export async function getEmailConfig(req, res, next) {
   try {
-    res.json(await lireEmailConfig(req.params.id));
+    res.json(await lireEmailConfig(parseInt(req.params.id, 10)));
   } catch (err) { next(err); }
 }
 
 // PUT /api/config/email/:id
 export async function putEmailConfig(req, res, next) {
   try {
-    await sauvegarderEmailConfig(req.params.id, req.body);
+    await sauvegarderEmailConfig(parseInt(req.params.id, 10), req.body);
     res.json({ message: 'Configuration e-mail enregistrée.' });
   } catch (err) { next(err); }
 }
@@ -94,7 +106,7 @@ export async function getPrestations(req, res, next) {
 // POST /api/config/prestations  +  PUT /api/config/prestations/:id
 export async function sauvegarderPrestationCtrl(req, res, next) {
   try {
-    await sauvegarderPrestation({ ...req.body, id_prestation: req.params.id || null });
+    await sauvegarderPrestation({ ...req.body, id_prestation: req.params.id ? parseInt(req.params.id, 10) : null });
     res.json({ message: 'Prestation enregistrée.' });
   } catch (err) {
     if (err.code === 'ER_DUP_ENTRY') {
@@ -107,7 +119,7 @@ export async function sauvegarderPrestationCtrl(req, res, next) {
 // DELETE /api/config/prestations/:id
 export async function supprimerPrestationCtrl(req, res, next) {
   try {
-    await supprimerPrestation(req.params.id);
+    await supprimerPrestation(parseInt(req.params.id, 10));
     res.json({ message: 'Prestation supprimée.' });
   } catch (err) {
     next(err);
@@ -127,7 +139,7 @@ export async function sauvegarderModePaiementCtrl(req, res, next) {
     if (!req.body.nom_mode_paiement?.trim() || !req.body.abrege_mode_paiement?.trim()) {
       return res.status(400).json({ message: 'Le nom et l\'abrégé sont requis.' });
     }
-    await sauvegarderModePaiement({ ...req.body, id_mode_paiement: req.params.id || null });
+    await sauvegarderModePaiement({ ...req.body, id_mode_paiement: req.params.id ? parseInt(req.params.id, 10) : null });
     res.json({ message: 'Mode de paiement enregistré.' });
   } catch (err) {
     next(err);
@@ -137,7 +149,7 @@ export async function sauvegarderModePaiementCtrl(req, res, next) {
 // DELETE /api/config/modes-paiement/:id
 export async function supprimerModePaiementCtrl(req, res, next) {
   try {
-    await supprimerModePaiement(req.params.id);
+    await supprimerModePaiement(parseInt(req.params.id, 10));
     res.json({ message: 'Mode de paiement supprimé.' });
   } catch (err) {
     if (err.code === 'ER_ROW_IS_REFERENCED_2') {

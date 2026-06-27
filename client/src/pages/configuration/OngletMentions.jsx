@@ -22,7 +22,12 @@ export default function OngletMentions({ params, onMaj, onModifie }) {
 
   useEffect(() => { onModifie?.(modifie); }, [modifie]);
 
-  const maj = (champ) => (e) => setForm(f => ({ ...f, [champ]: e.target.value }));
+  const maj = (champ, fmt) => (e) => {
+    let v = e.target.value;
+    if (fmt === 'MAJ') v = v.toUpperCase();
+    else if (fmt === '1ere') v = v.charAt(0).toUpperCase() + v.slice(1);
+    setForm(f => ({ ...f, [champ]: v }));
+  };
 
   function chargerLogo(e) {
     const fichier = e.target.files[0];
@@ -42,7 +47,7 @@ export default function OngletMentions({ params, onMaj, onModifie }) {
       onMaj(form);
       setSauvegarde(true);
       setTimeout(() => setSauvegarde(false), 2000);
-    } catch { setErreur('Erreur lors de la sauvegarde.'); }
+    } catch (err) { setErreur(err.response?.data?.message ?? 'Erreur lors de la sauvegarde.'); }
     finally { setEnCours(false); }
   }
 
@@ -56,43 +61,43 @@ export default function OngletMentions({ params, onMaj, onModifie }) {
         <div className="space-y-4">
 
           <Section titre="Identité">
-            <Champ label="Raison sociale" value={form.asso_raison_sociale} onChange={maj('asso_raison_sociale')} />
-            <Champ label="Statut juridique (ex : Association loi 1901)" value={form.asso_statut} onChange={maj('asso_statut')} />
+            <Champ label="Raison sociale" value={form.asso_raison_sociale} onChange={maj('asso_raison_sociale', '1ere')} maxLength={255} />
+            <Champ label="Statut juridique (ex : Association loi 1901)" value={form.asso_statut} onChange={maj('asso_statut', '1ere')} maxLength={100} />
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <Champ label="Nom du contact" value={form.asso_contact_nom} onChange={maj('asso_contact_nom')} />
-              <Champ label="Prénom du contact" value={form.asso_contact_prenom} onChange={maj('asso_contact_prenom')} />
+              <Champ label="Nom du contact" value={form.asso_contact_nom} onChange={maj('asso_contact_nom', '1ere')} maxLength={100} />
+              <Champ label="Prénom du contact" value={form.asso_contact_prenom} onChange={maj('asso_contact_prenom', '1ere')} maxLength={100} />
             </div>
           </Section>
 
           <Section titre="Identifiants légaux">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <Champ label="SIREN" value={form.asso_siren} onChange={maj('asso_siren')} />
-              <Champ label="SIRET" value={form.asso_siret} onChange={maj('asso_siret')} />
-              <Champ label="RNA (n° de déclaration)" value={form.rna} onChange={maj('rna')} />
-              <Champ label="Code NAF / APE" value={form.asso_naf} onChange={maj('asso_naf')} />
+              <Champ label="SIREN" value={form.asso_siren} onChange={maj('asso_siren', 'MAJ')} maxLength={9} />
+              <Champ label="SIRET" value={form.asso_siret} onChange={maj('asso_siret', 'MAJ')} maxLength={14} />
+              <Champ label="RNA (n° de déclaration)" value={form.rna} onChange={maj('rna', 'MAJ')} maxLength={20} />
+              <Champ label="Code NAF / APE" value={form.asso_naf} onChange={maj('asso_naf', 'MAJ')} maxLength={10} />
             </div>
-            <Champ label="N° TVA intracommunautaire" value={form.asso_num_tva_intra} onChange={maj('asso_num_tva_intra')} />
+            <Champ label="N° TVA intracommunautaire" value={form.asso_num_tva_intra} onChange={maj('asso_num_tva_intra', 'MAJ')} maxLength={20} />
           </Section>
 
           <Section titre="Adresse">
-            <Champ label="Adresse ligne 1" value={form.asso_adresse1} onChange={maj('asso_adresse1')} />
-            <Champ label="Adresse ligne 2" value={form.asso_adresse2} onChange={maj('asso_adresse2')} />
-            <Champ label="Adresse ligne 3" value={form.asso_adresse3} onChange={maj('asso_adresse3')} />
+            <Champ label="Adresse ligne 1" value={form.asso_adresse1} onChange={maj('asso_adresse1', '1ere')} maxLength={255} />
+            <Champ label="Adresse ligne 2" value={form.asso_adresse2} onChange={maj('asso_adresse2')} maxLength={255} />
+            <Champ label="Adresse ligne 3" value={form.asso_adresse3} onChange={maj('asso_adresse3')} maxLength={255} />
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-              <Champ label="Code postal" value={form.asso_code_postal} onChange={maj('asso_code_postal')} />
+              <Champ label="Code postal" value={form.asso_code_postal} onChange={maj('asso_code_postal', 'MAJ')} maxLength={10} />
               <div className="sm:col-span-2">
-                <Champ label="Ville" value={form.asso_ville} onChange={maj('asso_ville')} />
+                <Champ label="Ville" value={form.asso_ville} onChange={maj('asso_ville', '1ere')} maxLength={165} />
               </div>
             </div>
-            <Champ label="Pays" value={form.asso_pays} onChange={maj('asso_pays')} />
+            <Champ label="Pays" value={form.asso_pays} onChange={maj('asso_pays', '1ere')} maxLength={200} />
           </Section>
 
           <Section titre="Contact">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <Champ label="Téléphone" value={form.asso_tel} onChange={maj('asso_tel')} />
-              <Champ label="Téléphone 2" value={form.asso_tel2} onChange={maj('asso_tel2')} />
-              <Champ label="E-mail" value={form.asso_email} onChange={maj('asso_email')} />
-              <Champ label="E-mail 2" value={form.asso_email2} onChange={maj('asso_email2')} />
+              <Champ label="Téléphone" value={form.asso_tel} onChange={maj('asso_tel')} maxLength={20} />
+              <Champ label="Téléphone 2" value={form.asso_tel2} onChange={maj('asso_tel2')} maxLength={20} />
+              <Champ label="E-mail" value={form.asso_email} onChange={maj('asso_email')} maxLength={260} />
+              <Champ label="E-mail 2" value={form.asso_email2} onChange={maj('asso_email2')} maxLength={260} />
             </div>
           </Section>
 
@@ -126,27 +131,27 @@ export default function OngletMentions({ params, onMaj, onModifie }) {
             <div>
               <label className="block text-xs text-gray-500 dark:text-gray-400 mb-1">Commentaire en-tête</label>
               <textarea value={form.com_entete_page_factu ?? ''} onChange={maj('com_entete_page_factu')}
-                rows={3} className={CL_AREA} />
+                rows={3} maxLength={400} className={CL_AREA} />
             </div>
             <div>
               <label className="block text-xs text-gray-500 dark:text-gray-400 mb-1">Commentaire pied de page</label>
               <textarea value={form.com_pied_page_factu ?? ''} onChange={maj('com_pied_page_factu')}
-                rows={3} className={CL_AREA} />
+                rows={3} maxLength={400} className={CL_AREA} />
             </div>
             <div>
               <label className="block text-xs text-gray-500 dark:text-gray-400 mb-1">Mention obligatoire (IBAN, délai paiement…)</label>
               <textarea value={form.mention_obligatoire_fact4 ?? ''} onChange={maj('mention_obligatoire_fact4')}
-                rows={2} className={CL_AREA} />
+                rows={2} maxLength={200} className={CL_AREA} />
             </div>
             <div>
               <label className="block text-xs text-gray-500 dark:text-gray-400 mb-1">Autre mention 1</label>
               <textarea value={form.asso_autre_mention1 ?? ''} onChange={maj('asso_autre_mention1')}
-                rows={2} className={CL_AREA} />
+                rows={2} maxLength={400} className={CL_AREA} />
             </div>
             <div>
               <label className="block text-xs text-gray-500 dark:text-gray-400 mb-1">Autre mention 2</label>
               <textarea value={form.asso_autre_mention2 ?? ''} onChange={maj('asso_autre_mention2')}
-                rows={2} className={CL_AREA} />
+                rows={2} maxLength={400} className={CL_AREA} />
             </div>
           </Section>
 
@@ -178,11 +183,11 @@ function Section({ titre, children }) {
   );
 }
 
-function Champ({ label, value, onChange }) {
+function Champ({ label, value, onChange, maxLength }) {
   return (
     <div>
       <label className="block text-xs text-gray-500 dark:text-gray-400 mb-1">{label}</label>
-      <input value={value ?? ''} onChange={onChange} autoComplete="off" className={CL} />
+      <input value={value ?? ''} onChange={onChange} autoComplete="off" maxLength={maxLength} className={CL} />
     </div>
   );
 }

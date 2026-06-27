@@ -4,7 +4,7 @@
 //  droits à droite. Responsive (empilement vertical sous lg).
 // =====================================================================
 import { useState, useEffect, useMemo } from 'react';
-import { Plus, ChevronRight, Eye, EyeOff, UserCog, ShieldCheck } from 'lucide-react';
+import { Plus, ChevronRight, Eye, EyeOff, UserCog, ShieldCheck, Lock } from 'lucide-react';
 import { configService } from '../../services/configService.js';
 import ModalConfirmation from '../../composants/ModalConfirmation.jsx';
 
@@ -24,7 +24,7 @@ const DROITS = [
 const GROUPES = [
   { titre: 'Factures', droits: [
     { cle: 'droit_consult_fac', label: 'Consulter' },
-    { cle: 'droit_ajout_fac',   label: 'Ajouter / modifier' },
+    { cle: 'droit_ajout_fac',   label: 'Ajouter / modifier (brouillons)' },
   ] },
   { titre: 'Paiements', droits: [
     { cle: 'droit_consult_paiem', label: 'Consulter' },
@@ -162,6 +162,8 @@ export default function OngletUtilisateurs({ utilisateurConnecte, onModifie }) {
 
   const enErreur = message && message !== 'Enregistré !';
   const adminVerrouille = !estNouveau && selectionne?.id_utilisateur === utilisateurConnecte?.id_utilisateur;
+  const estProprietaire = selectionne?.id_utilisateur === utilisateurConnecte?.id_utilisateur;
+  const formulaireBloque = !estNouveau && !!selectionne?.compte_protege && !estProprietaire;
 
   return (
     <div className="flex flex-col lg:flex-row gap-6 max-w-5xl">
@@ -206,6 +208,7 @@ export default function OngletUtilisateurs({ utilisateurConnecte, onModifie }) {
                   <span className={`flex items-center gap-1.5 text-sm font-medium truncate
                     ${actif ? 'text-primaire-fonce dark:text-primaire' : 'text-gray-700 dark:text-gray-200'}`}>
                     {u.droit_admin && <ShieldCheck className="w-3.5 h-3.5 shrink-0" />}
+                    {u.compte_protege && <Lock className="w-3 h-3 shrink-0 text-amber-500" />}
                     {u.nom_utilisateur}
                   </span>
                   <span className="block text-xs text-gray-400 dark:text-gray-500 truncate">
@@ -244,6 +247,13 @@ export default function OngletUtilisateurs({ utilisateurConnecte, onModifie }) {
               </div>
             </div>
 
+            {formulaireBloque && (
+              <div className="flex items-center gap-2 text-sm rounded-lg p-3 bg-amber-50 dark:bg-amber-900/20 text-amber-700 dark:text-amber-400 border border-amber-200 dark:border-amber-800">
+                <Lock className="w-4 h-4 shrink-0" />
+                Ce compte est protégé. Seul son propriétaire peut le modifier.
+              </div>
+            )}
+
             {enErreur && (
               <div className="text-sm rounded-lg p-3 bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400">
                 {message}
@@ -257,7 +267,7 @@ export default function OngletUtilisateurs({ utilisateurConnecte, onModifie }) {
                   <label className="block text-xs text-gray-500 dark:text-gray-400 mb-1">Nom d'utilisateur</label>
                   <input value={form.nom_utilisateur}
                     onChange={e => setForm(f => ({ ...f, nom_utilisateur: e.target.value.toUpperCase() }))}
-                    autoComplete="off" className={CL} />
+                    autoComplete="off" disabled={formulaireBloque} className={CL} />
                 </div>
                 <div>
                   <label className="block text-xs text-gray-500 dark:text-gray-400 mb-1">
@@ -270,6 +280,7 @@ export default function OngletUtilisateurs({ utilisateurConnecte, onModifie }) {
                       onChange={e => setForm(f => ({ ...f, mot_de_passe: e.target.value }))}
                       name="mdp-nouveau-compte" autoComplete="off"
                       data-lpignore="true" data-1p-ignore data-form-type="other"
+                      disabled={formulaireBloque}
                       style={{ WebkitTextSecurity: montrerMdp ? 'none' : 'disc' }}
                       className={CL + ' pr-9'} />
                     <button type="button" onClick={() => setMontrerMdp(v => !v)}
@@ -280,9 +291,10 @@ export default function OngletUtilisateurs({ utilisateurConnecte, onModifie }) {
                   </div>
                 </div>
               </div>
-              <label className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-300">
+              <label className={`flex items-center gap-2 text-sm text-gray-600 dark:text-gray-300 ${formulaireBloque || selectionne?.compte_protege ? 'opacity-50 cursor-not-allowed' : ''}`}>
                 <input type="checkbox" checked={!!form.compte_desactive}
                   onChange={e => setForm(f => ({ ...f, compte_desactive: e.target.checked }))}
+                  disabled={formulaireBloque || !!selectionne?.compte_protege}
                   className="accent-primaire" />
                 Compte désactivé
               </label>
@@ -295,9 +307,9 @@ export default function OngletUtilisateurs({ utilisateurConnecte, onModifie }) {
                 ${form.droit_admin
                   ? 'border-primaire/40 bg-primaire-clair dark:bg-primaire/10'
                   : 'border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50'}
-                ${adminVerrouille ? 'opacity-60 cursor-not-allowed' : ''}`}>
+                ${adminVerrouille || formulaireBloque ? 'opacity-60 cursor-not-allowed' : ''}`}>
                 <input type="checkbox" checked={!!form.droit_admin} onChange={majDroit('droit_admin')}
-                  disabled={adminVerrouille}
+                  disabled={adminVerrouille || formulaireBloque}
                   className="accent-primaire w-4 h-4 mt-0.5" />
                 <span>
                   <span className="flex items-center gap-1.5 text-sm font-medium text-gray-800 dark:text-gray-100">
@@ -319,7 +331,7 @@ export default function OngletUtilisateurs({ utilisateurConnecte, onModifie }) {
                       {g.droits.map(d => (
                         <label key={d.cle} className="flex items-center gap-2.5 text-sm text-gray-700 dark:text-gray-300">
                           <input type="checkbox" checked={!!form[d.cle]} onChange={majDroit(d.cle)}
-                            disabled={form.droit_admin}
+                            disabled={form.droit_admin || formulaireBloque}
                             className="accent-primaire w-4 h-4" />
                           {d.label}
                         </label>
@@ -331,7 +343,7 @@ export default function OngletUtilisateurs({ utilisateurConnecte, onModifie }) {
             </Section>
 
             {/* Barre sticky — modifications non enregistrées */}
-            <div className={`fixed bottom-0 left-0 lg:left-64 right-0 z-40 transition-transform duration-300 ${modifie || message === 'Enregistré !' ? 'translate-y-0' : 'translate-y-full'}`}>
+            <div className={`fixed bottom-0 left-0 lg:left-64 right-0 z-40 transition-transform duration-300 ${!formulaireBloque && (modifie || message === 'Enregistré !') ? 'translate-y-0' : 'translate-y-full'}`}>
               <div className="bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-700 shadow-lg px-6 py-3 flex items-center gap-4">
                 <button type="submit" disabled={enCours || !modifie}
                   className="bg-primaire hover:bg-primaire-fonce dark:bg-primaire-fonce dark:hover:bg-primaire disabled:opacity-50 disabled:cursor-not-allowed text-white font-semibold px-5 py-2 rounded-lg transition whitespace-nowrap">
