@@ -99,7 +99,7 @@ export default function Configuration() {
           <OngletUtilisateurs utilisateurConnecte={utilisateur} />
         )}
         {onglet === 'email' && (
-          <OngletEmail />
+          <OngletEmail onModifie={setModifieEnCours} />
         )}
         {onglet === 'prestations' && (
           <OngletPrestations />
