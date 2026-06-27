@@ -156,7 +156,7 @@ export default function FicheClient({ client, peutModifier, onValider, onFermer 
           <div className="flex gap-3 pt-2">
             {peutModifier && (
               <button type="submit" disabled={enCours}
-                className="flex-1 flex items-center justify-center gap-2 bg-primaire hover:bg-primaire-fonce text-white font-semibold py-2.5 rounded-xl transition-colors disabled:opacity-60">
+                className="flex-1 flex items-center justify-center gap-2 bg-primaire hover:bg-primaire-fonce dark:bg-primaire-fonce dark:hover:bg-primaire text-white font-semibold py-2.5 rounded-xl transition-colors disabled:opacity-60">
                 {enCours && <Loader2 size={15} className="animate-spin" />}
                 {enCours ? 'Enregistrement…' : 'Valider'}
               </button>

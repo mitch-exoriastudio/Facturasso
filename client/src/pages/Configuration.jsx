@@ -32,7 +32,7 @@ export default function Configuration() {
       .then(p => { setParams(p); setChargement(false); });
   }, []);
 
-  if (chargement) return <p className="text-slate-400 text-sm">Chargement…</p>;
+  if (chargement) return <p className="text-gray-400 dark:text-gray-500 text-sm">Chargement…</p>;
   if (!params) return <p className="text-red-500 text-sm">Erreur de chargement des paramètres.</p>;
 
   const ongletsVisibles = ONGLETS.filter(o => !o.adminSeulement || utilisateur?.droit_admin);
@@ -42,13 +42,13 @@ export default function Configuration() {
       <h1 className="text-2xl font-bold mb-5">Configuration</h1>
 
       {/* Barre d'onglets */}
-      <div className="flex gap-1 border-b border-slate-200 mb-6 overflow-x-auto">
+      <div className="flex gap-1 border-b border-gray-200 dark:border-gray-700 mb-6 overflow-x-auto overflow-y-hidden">
         {ongletsVisibles.map(o => (
           <button key={o.id} onClick={() => setOnglet(o.id)}
             className={`px-4 py-2 text-sm font-medium whitespace-nowrap transition rounded-t-lg
               ${onglet === o.id
-                ? 'bg-white border border-b-white border-slate-200 -mb-px text-primaire-fonce'
-                : 'text-slate-500 hover:text-slate-700'}`}>
+                ? 'bg-white dark:bg-gray-950 border border-b-white dark:border-b-gray-950 border-gray-200 dark:border-gray-700 -mb-px text-primaire-fonce dark:text-primaire'
+                : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200'}`}>
             {o.label}
           </button>
         ))}

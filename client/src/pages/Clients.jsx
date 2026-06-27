@@ -6,6 +6,7 @@ import { Users, Plus, Search, Archive, ArchiveRestore, Pencil, Eye, UserCircle2 
 import { useAuth } from '../contextes/ContexteAuth.jsx';
 import { clientService } from '../services/clientService.js';
 import FicheClient from '../composants/FicheClient.jsx';
+import ModalConfirmation from '../composants/ModalConfirmation.jsx';
 
 export default function Clients() {
   const { utilisateur } = useAuth();
@@ -20,6 +21,9 @@ export default function Clients() {
 
   // Fiche ouverte : null = fermée, 'nouveau' = création, objet = modification.
   const [ficheOuverte, setFicheOuverte] = useState(null);
+
+  // Confirmation d'archivage : null = fermée, sinon { client, e }.
+  const [confirmArchive, setConfirmArchive] = useState(null);
 
   const chargerClients = useCallback(async () => {
     setChargement(true);
@@ -51,11 +55,14 @@ export default function Clients() {
     chargerClients();
   }
 
-  async function basculerArchivage(client, e) {
+  function demanderArchivage(client, e) {
     e.stopPropagation();
-    const action = client.archive ? 'désarchiver' : 'archiver';
-    const nom = [client.civilite, client.nom, client.prenom].filter(Boolean).join(' ');
-    if (!window.confirm(`Voulez-vous ${action} ${nom} ?`)) return;
+    setConfirmArchive(client);
+  }
+
+  async function confirmerArchivage() {
+    const client = confirmArchive;
+    setConfirmArchive(null);
     await clientService.archiver(client.id_client, !client.archive);
     chargerClients();
   }
@@ -81,7 +88,7 @@ export default function Clients() {
         {peutModifier && (
           <button
             onClick={() => setFicheOuverte('nouveau')}
-            className="flex items-center gap-2 bg-primaire hover:bg-primaire-fonce text-white font-semibold px-4 py-2.5 rounded-xl text-sm transition-colors shadow-sm"
+            className="flex items-center gap-2 bg-primaire hover:bg-primaire-fonce dark:bg-primaire-fonce dark:hover:bg-primaire text-white font-semibold px-4 py-2.5 rounded-xl text-sm transition-colors shadow-sm"
           >
             <Plus size={16} />
             Nouveau client
@@ -183,7 +190,7 @@ export default function Clients() {
                 </button>
                 {peutModifier && (
                   <button
-                    onClick={(e) => basculerArchivage(c, e)}
+                    onClick={(e) => demanderArchivage(c, e)}
                     title={c.archive ? 'Désarchiver' : 'Archiver'}
                     className={`p-2 rounded-lg transition-colors ${
                       c.archive
@@ -209,6 +216,21 @@ export default function Clients() {
           onFermer={() => setFicheOuverte(null)}
         />
       )}
+
+      {/* Confirmation archivage */}
+      <ModalConfirmation
+        ouvert={confirmArchive !== null}
+        variante="avertissement"
+        titre={confirmArchive?.archive ? 'Désarchiver ce client ?' : 'Archiver ce client ?'}
+        message={
+          confirmArchive
+            ? [confirmArchive.civilite, confirmArchive.nom, confirmArchive.prenom].filter(Boolean).join(' ')
+            : ''
+        }
+        labelConfirmer={confirmArchive?.archive ? 'Désarchiver' : 'Archiver'}
+        onConfirmer={confirmerArchivage}
+        onAnnuler={() => setConfirmArchive(null)}
+      />
     </div>
   );
 }

@@ -130,7 +130,7 @@ export default function Connexion() {
             <button
               type="submit"
               disabled={enCours || chargementDossiers}
-              className="w-full flex items-center justify-center gap-2 bg-primaire hover:bg-primaire-fonce text-white font-semibold py-2.5 rounded-xl transition-colors disabled:opacity-60 mt-2"
+              className="w-full flex items-center justify-center gap-2 bg-primaire hover:bg-primaire-fonce dark:bg-primaire-fonce dark:hover:bg-primaire text-white font-semibold py-2.5 rounded-xl transition-colors disabled:opacity-60 mt-2"
             >
               {enCours && <Loader2 size={16} className="animate-spin" />}
               {enCours ? 'Connexion…' : 'Se connecter'}

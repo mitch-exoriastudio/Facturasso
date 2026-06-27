@@ -4,7 +4,7 @@
 import { useState } from 'react';
 import { configService } from '../../services/configService.js';
 
-const CL = 'w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primaire';
+const CL = 'w-full border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-2 text-sm bg-white dark:bg-gray-800 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-primaire';
 const CL_AREA = CL + ' resize-none';
 
 export default function OngletMentions({ params, onMaj }) {
@@ -36,22 +36,22 @@ export default function OngletMentions({ params, onMaj }) {
 
   return (
     <form onSubmit={sauvegarder} autoComplete="off" className="space-y-5 max-w-4xl">
-      {sauvegarde && <div className="text-sm text-green-700 bg-green-50 rounded-lg p-3">{sauvegarde}</div>}
-      {erreur && <div className="text-sm text-red-600 bg-red-50 rounded-lg p-3">{erreur}</div>}
+      {sauvegarde && <div className="text-sm text-green-700 dark:text-green-400 bg-green-50 dark:bg-green-900/20 rounded-lg p-3">{sauvegarde}</div>}
+      {erreur && <div className="text-sm text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20 rounded-lg p-3">{erreur}</div>}
 
       <div className="grid grid-cols-2 gap-6">
         {/* Colonne gauche */}
         <div className="space-y-4">
           {/* Logo */}
           <div>
-            <label className="block text-xs text-slate-500 mb-1">Logo</label>
+            <label className="block text-xs text-gray-500 dark:text-gray-400 mb-1">Logo</label>
             <div className="flex items-center gap-3">
               {form.logo_asso
-                ? <img src={form.logo_asso} alt="Logo" className="h-16 object-contain border rounded" />
-                : <div className="h-16 w-24 bg-slate-100 border rounded flex items-center justify-center text-xs text-slate-400">Aucun logo</div>
+                ? <img src={form.logo_asso} alt="Logo" className="h-16 object-contain border border-gray-200 dark:border-gray-700 rounded" />
+                : <div className="h-16 w-24 bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded flex items-center justify-center text-xs text-gray-400 dark:text-gray-500">Aucun logo</div>
               }
               <div className="flex flex-col gap-1">
-                <label className="cursor-pointer bg-primaire-clair text-primaire-fonce text-xs font-medium px-3 py-1.5 rounded-lg hover:bg-primaire hover:text-white transition">
+                <label className="cursor-pointer bg-primaire-clair dark:bg-primaire/20 text-primaire-fonce dark:text-primaire text-xs font-medium px-3 py-1.5 rounded-lg hover:bg-primaire hover:text-white dark:hover:bg-primaire dark:hover:text-white transition">
                   Charger un logo
                   <input type="file" accept="image/*" onChange={chargerLogo} className="hidden" />
                 </label>
@@ -85,17 +85,17 @@ export default function OngletMentions({ params, onMaj }) {
         {/* Colonne droite */}
         <div className="space-y-4">
           <div>
-            <label className="block text-xs text-slate-500 mb-1">Commentaire en-tête de facture</label>
+            <label className="block text-xs text-gray-500 dark:text-gray-400 mb-1">Commentaire en-tête de facture</label>
             <textarea value={form.com_entete_page_factu} onChange={maj('com_entete_page_factu')}
               rows={4} className={CL_AREA} />
           </div>
           <div>
-            <label className="block text-xs text-slate-500 mb-1">Commentaire bas de page de facture</label>
+            <label className="block text-xs text-gray-500 dark:text-gray-400 mb-1">Commentaire bas de page de facture</label>
             <textarea value={form.com_pied_page_factu} onChange={maj('com_pied_page_factu')}
               rows={4} className={CL_AREA} />
           </div>
           <div>
-            <label className="block text-xs text-slate-500 mb-1">Mentions diverses (IBAN, etc.)</label>
+            <label className="block text-xs text-gray-500 dark:text-gray-400 mb-1">Mentions diverses (IBAN, etc.)</label>
             <textarea value={form.mention_obligatoire_fact4} onChange={maj('mention_obligatoire_fact4')}
               rows={3} className={CL_AREA} />
           </div>
@@ -103,7 +103,7 @@ export default function OngletMentions({ params, onMaj }) {
       </div>
 
       <button type="submit"
-        className="bg-primaire hover:bg-primaire-fonce text-white font-semibold px-6 py-2 rounded-lg transition">
+        className="bg-primaire hover:bg-primaire-fonce dark:bg-primaire-fonce dark:hover:bg-primaire text-white font-semibold px-6 py-2 rounded-lg transition">
         Enregistrer
       </button>
     </form>
@@ -114,7 +114,7 @@ export default function OngletMentions({ params, onMaj }) {
 function Champ({ label, value, onChange }) {
   return (
     <div>
-      <label className="block text-xs text-slate-500 mb-1">{label}</label>
+      <label className="block text-xs text-gray-500 dark:text-gray-400 mb-1">{label}</label>
       <input value={value ?? ''} onChange={onChange} autoComplete="off" className={CL} />
     </div>
   );
