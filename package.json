@@ -1,0 +1,28 @@
+{
+  "name": "facturasso",
+  "version": "2.0.0",
+  "private": true,
+  "workspaces": [
+    "client",
+    "serveur"
+  ],
+  "scripts": {
+    "dev": "concurrently --names \"API,UI\" --prefix-colors \"cyan,magenta\" \"npm run dev -w serveur\" \"npm run dev -w client\"",
+    "build": "npm run build -w client",
+    "start": "npm run start -w serveur",
+    "deploy": "npm run db:migrate:prod && npm run build && npm run start",
+    "db:migrate:dev": "npm run db:migrate:dev -w serveur",
+    "db:migrate:prod": "npm run db:migrate:prod -w serveur",
+    "db:generate": "npm run db:generate -w serveur",
+    "db:studio": "npm run db:studio -w serveur",
+    "db:seed": "npm run db:seed -w serveur"
+  },
+  "devDependencies": {
+    "concurrently": "^9.0.0"
+  },
+  "allowScripts": {
+    "prisma@6.19.3": true,
+    "@prisma/client@6.19.3": true,
+    "@prisma/engines@6.19.3": true
+  }
+}

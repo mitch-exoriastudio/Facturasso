@@ -1,0 +1,4 @@
+**/node_modules/
+**/dist/
+serveur/.env
+package-lock.json
