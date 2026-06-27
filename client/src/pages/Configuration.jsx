@@ -13,6 +13,7 @@ import OngletEmail from './configuration/OngletEmail.jsx';
 import OngletPrestations from './configuration/OngletPrestations.jsx';
 import OngletModesPaiement from './configuration/OngletModesPaiement.jsx';
 import OngletSuperviseur from './configuration/OngletSuperviseur.jsx';
+import { SqueletteConfiguration } from '../composants/Squelette.jsx';
 
 const ONGLETS = [
   { id: 'mentions',     label: 'Mentions documents' },
@@ -64,7 +65,7 @@ export default function Configuration() {
     }
   }
 
-  if (chargement) return <p className="text-gray-400 dark:text-gray-500 text-sm">Chargement…</p>;
+  if (chargement) return <SqueletteConfiguration />;
   if (!params) return <p className="text-red-500 text-sm">Erreur de chargement des paramètres.</p>;
 
   const ongletsVisibles = ONGLETS.filter(o => !o.adminSeulement || utilisateur?.droit_admin);
@@ -96,7 +97,7 @@ export default function Configuration() {
           />
         )}
         {onglet === 'utilisateurs' && (
-          <OngletUtilisateurs utilisateurConnecte={utilisateur} />
+          <OngletUtilisateurs utilisateurConnecte={utilisateur} onModifie={setModifieEnCours} />
         )}
         {onglet === 'email' && (
           <OngletEmail onModifie={setModifieEnCours} />

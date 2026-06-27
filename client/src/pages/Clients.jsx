@@ -7,6 +7,7 @@ import { useAuth } from '../contextes/ContexteAuth.jsx';
 import { clientService } from '../services/clientService.js';
 import FicheClient from '../composants/FicheClient.jsx';
 import ModalConfirmation from '../composants/ModalConfirmation.jsx';
+import { SqueletteClients } from '../composants/Squelette.jsx';
 
 export default function Clients() {
   const { utilisateur } = useAuth();
@@ -126,10 +127,7 @@ export default function Clients() {
 
       {/* Liste */}
       {chargement ? (
-        <div className="flex items-center gap-3 py-10 text-gray-400 dark:text-gray-600">
-          <div className="w-5 h-5 border-2 border-primaire border-t-transparent rounded-full animate-spin" />
-          <span className="text-sm">Chargement…</span>
-        </div>
+        <SqueletteClients />
       ) : clients.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-16 text-gray-400 dark:text-gray-600">
           <Users size={40} className="mb-3 opacity-40" />

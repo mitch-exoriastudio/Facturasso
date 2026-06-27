@@ -1,27 +1,39 @@
 // =====================================================================
 //  Onglet 5 — Liste des modes de paiement
 // =====================================================================
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
+import { Plus, Check, Trash2, CreditCard } from 'lucide-react';
 import { configService } from '../../services/configService.js';
 import ModalConfirmation from '../../composants/ModalConfirmation.jsx';
+import { SqueletteModesPaiement } from '../../composants/Squelette.jsx';
 
 const CL = 'border border-gray-200 dark:border-gray-700 rounded-lg px-2 py-1.5 text-sm bg-white dark:bg-gray-700 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-primaire';
 
 export default function OngletModesPaiement() {
   const [modes, setModes] = useState([]);
   const [avecArchives, setAvecArchives] = useState(false);
+  const [chargement, setChargement] = useState(true);
   const [message, setMessage] = useState(null); // { texte, ok }
-  const [confirmerSuppression, setConfirmerSuppression] = useState(null); // id à supprimer
+  const [confirmerSuppression, setConfirmerSuppression] = useState(null);
+  const cleCompteur = useRef(0);
 
   useEffect(() => { charger(); }, [avecArchives]);
 
   async function charger() {
+    setChargement(true);
     const data = await configService.getModesPaiement(avecArchives ? { archives: '1' } : {});
     setModes(data);
+    setChargement(false);
   }
 
-  function majLigne(id, champ, valeur) {
-    setModes(ms => ms.map(m => m.id_mode_paiement === id ? { ...m, [champ]: valeur } : m));
+  // Identifie une ligne par son id (existant) ou sa clé temporaire (nouvelle).
+  function majLigne(m, champ, valeur) {
+    setModes(ms => ms.map(x => {
+      const meme = m.id_mode_paiement !== null
+        ? x.id_mode_paiement === m.id_mode_paiement
+        : x._cle === m._cle;
+      return meme ? { ...x, [champ]: valeur, _modifie: true } : x;
+    }));
   }
 
   async function sauvegarder(m) {
@@ -51,56 +63,109 @@ export default function OngletModesPaiement() {
     }
   }
 
+  // Les nouvelles lignes sont insérées en tête de liste pour rester visibles.
   function ajouterLigne() {
-    setModes(ms => [...ms, { id_mode_paiement: null, nom_mode_paiement: '', abrege_mode_paiement: '', ne_plus_proposer: false }]);
+    cleCompteur.current += 1;
+    setModes(ms => [
+      { id_mode_paiement: null, _cle: cleCompteur.current, nom_mode_paiement: '', abrege_mode_paiement: '', ne_plus_proposer: false, _nouveau: true },
+      ...ms,
+    ]);
   }
 
   return (
     <div className="max-w-xl">
+
+      {/* ── Barre d'outils ─────────────────────────────────────────── */}
+      <div className="flex items-center justify-between gap-3 mb-3">
+        <label className="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400">
+          <input type="checkbox" checked={avecArchives} onChange={e => setAvecArchives(e.target.checked)}
+            className="accent-primaire" />
+          Afficher les modes archivés
+        </label>
+        <button onClick={ajouterLigne}
+          className="flex items-center gap-1.5 bg-primaire hover:bg-primaire-fonce dark:bg-primaire-fonce dark:hover:bg-primaire text-white text-sm font-medium px-3 py-2 rounded-lg transition whitespace-nowrap">
+          <Plus className="w-4 h-4" /> Nouveau mode
+        </button>
+      </div>
+
       {message && (
         <div className={`text-sm rounded-lg p-3 mb-3 ${message.ok ? 'text-green-700 dark:text-green-400 bg-green-50 dark:bg-green-900/20' : 'text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20'}`}>
           {message.texte}
         </div>
       )}
 
-      <label className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-300 mb-4">
-        <input type="checkbox" checked={avecArchives} onChange={e => setAvecArchives(e.target.checked)}
-          className="accent-primaire" />
-        Afficher les modes archivés
-      </label>
+      {chargement && <SqueletteModesPaiement />}
 
+      {/* ── En-têtes de colonnes (masqués sur mobile) ──────────────── */}
+      {!chargement && modes.length > 0 && (
+        <div className="hidden sm:flex gap-2 px-3 mb-1 text-xs text-gray-400 dark:text-gray-500 font-medium uppercase tracking-wide select-none">
+          <span className="flex-1">Nom</span>
+          <span className="w-24">Abrégé</span>
+          <span className="w-20 text-center">Archiver</span>
+          <span className="w-16" />
+        </div>
+      )}
+
+      {/* ── Liste ──────────────────────────────────────────────────── */}
       <div className="space-y-2">
-        {modes.map((m, i) => (
-          <div key={m.id_mode_paiement ?? `new-${i}`}
-            className="flex gap-2 items-center bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl px-3 py-2">
-            <input value={m.nom_mode_paiement ?? ''}
-              onChange={e => { const v = e.target.value; majLigne(m.id_mode_paiement, 'nom_mode_paiement', v ? v.charAt(0).toUpperCase() + v.slice(1) : v); }}
-              placeholder="Nom (ex. Virement)" className={CL + ' flex-1 min-w-0'} autoComplete="nope" />
-            <input value={m.abrege_mode_paiement ?? ''}
-              onChange={e => majLigne(m.id_mode_paiement, 'abrege_mode_paiement', e.target.value.toUpperCase())}
-              placeholder="VIR" className={CL + ' w-20'} autoComplete="nope" />
-            <label className="flex items-center gap-1 text-xs text-gray-500 dark:text-gray-400 whitespace-nowrap">
-              <input type="checkbox" checked={!!m.ne_plus_proposer}
-                onChange={e => majLigne(m.id_mode_paiement, 'ne_plus_proposer', e.target.checked)}
-                className="accent-primaire" />
-              Archiver
-            </label>
-            <button onClick={() => sauvegarder(m)}
-              className="text-xs bg-primaire-clair dark:bg-primaire/20 text-primaire-fonce dark:text-primaire px-2 py-1 rounded-lg hover:bg-primaire dark:hover:bg-primaire hover:text-white dark:hover:text-white transition">
-              ✓
-            </button>
-            {m.id_mode_paiement && (
-              <button onClick={() => setConfirmerSuppression(m.id_mode_paiement)}
-                className="text-xs text-red-400 hover:text-red-600 px-1">✕</button>
-            )}
-          </div>
-        ))}
-      </div>
 
-      <button onClick={ajouterLigne}
-        className="mt-4 w-full bg-primaire hover:bg-primaire-fonce dark:bg-primaire-fonce dark:hover:bg-primaire text-white font-semibold py-2 rounded-lg transition text-sm">
-        + Ajouter un nouveau mode de paiement
-      </button>
+        {!chargement && modes.length === 0 && (
+          <div className="flex flex-col items-center justify-center text-center border border-dashed border-gray-200 dark:border-gray-700 rounded-xl p-8 text-gray-400 dark:text-gray-500">
+            <CreditCard className="w-8 h-8 mb-2 opacity-60" />
+            <p className="text-sm">
+              Aucun mode de paiement.{' '}
+              <button onClick={ajouterLigne} className="text-primaire hover:underline">
+                Créer le premier
+              </button>
+            </p>
+          </div>
+        )}
+
+        {!chargement && modes.map((m, i) => {
+          const dirty = m._modifie || m._nouveau;
+          return (
+            <div key={m.id_mode_paiement ?? `new-${m._cle ?? i}`}
+              className={`rounded-xl border px-3 py-2 transition-colors
+                ${dirty
+                  ? 'border-amber-300 dark:border-amber-700 bg-amber-50/40 dark:bg-amber-900/10'
+                  : 'border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800'}`}>
+
+              <div className="flex items-center gap-1.5 flex-wrap sm:flex-nowrap">
+                <input value={m.nom_mode_paiement ?? ''}
+                  onChange={e => { const v = e.target.value; majLigne(m, 'nom_mode_paiement', v ? v.charAt(0).toUpperCase() + v.slice(1) : v); }}
+                  placeholder="Nom (ex. Virement)"
+                  className={CL + ' flex-1 min-w-0'} autoComplete="nope" />
+                <input value={m.abrege_mode_paiement ?? ''}
+                  onChange={e => majLigne(m, 'abrege_mode_paiement', e.target.value.toUpperCase())}
+                  placeholder="VIR"
+                  className={CL + ' w-24'} autoComplete="nope" />
+                <label className="flex items-center gap-1 text-xs text-gray-500 dark:text-gray-400 whitespace-nowrap w-20 justify-center"
+                  title="Archiver ce mode (ne plus le proposer à la saisie)">
+                  <input type="checkbox" checked={!!m.ne_plus_proposer}
+                    onChange={e => majLigne(m, 'ne_plus_proposer', e.target.checked)}
+                    className="accent-primaire" />
+                  <span className="sm:hidden">Archiver</span>
+                </label>
+                <div className="flex gap-1 ml-auto sm:ml-0">
+                  <button onClick={() => sauvegarder(m)} title="Enregistrer cette ligne"
+                    className={`p-1.5 rounded-lg transition
+                      ${dirty
+                        ? 'bg-primaire text-white hover:bg-primaire-fonce dark:hover:bg-primaire'
+                        : 'bg-primaire-clair dark:bg-primaire/20 text-primaire-fonce dark:text-primaire hover:bg-primaire hover:text-white'}`}>
+                    <Check className="w-4 h-4" />
+                  </button>
+                  {m.id_mode_paiement && (
+                    <button onClick={() => setConfirmerSuppression(m.id_mode_paiement)} title="Supprimer ce mode de paiement"
+                      className="p-1.5 rounded-lg text-red-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 transition">
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  )}
+                </div>
+              </div>
+            </div>
+          );
+        })}
+      </div>
 
       <ModalConfirmation
         ouvert={confirmerSuppression !== null}
