@@ -13,64 +13,82 @@ import {
 } from '../modeles/configModele.js';
 
 // GET /api/config/parametres
-export async function getParametres(req, res) {
-  res.json(await lireParametres());
+export async function getParametres(req, res, next) {
+  try {
+    res.json(await lireParametres());
+  } catch (err) { next(err); }
 }
 
 // PUT /api/config/parametres
-export async function putParametres(req, res) {
-  await sauvegarderParametres(req.body);
-  res.json({ message: 'Paramètres enregistrés.' });
+export async function putParametres(req, res, next) {
+  try {
+    await sauvegarderParametres(req.body);
+    res.json({ message: 'Paramètres enregistrés.' });
+  } catch (err) { next(err); }
 }
 
 // PATCH /api/config/dernier-numero
-export async function patchDernierNumero(req, res) {
-  const numero = Number(req.body.numero);
-  if (!Number.isInteger(numero) || numero < 0) {
-    return res.status(400).json({ message: 'Numéro invalide.' });
-  }
-  await mettreAJourDernierNumero(numero);
-  res.json({ message: 'Dernier numéro mis à jour.' });
+export async function patchDernierNumero(req, res, next) {
+  try {
+    const numero = Number(req.body.numero);
+    if (!Number.isInteger(numero) || numero < 0) {
+      return res.status(400).json({ message: 'Numéro invalide.' });
+    }
+    await mettreAJourDernierNumero(numero);
+    res.json({ message: 'Dernier numéro mis à jour.' });
+  } catch (err) { next(err); }
 }
 
 // GET /api/config/utilisateurs?desactives=1
-export async function getUtilisateurs(req, res) {
-  res.json(await listerUtilisateurs(req.query.desactives === '1'));
+export async function getUtilisateurs(req, res, next) {
+  try {
+    res.json(await listerUtilisateurs(req.query.desactives === '1'));
+  } catch (err) { next(err); }
 }
 
 // POST /api/config/utilisateurs
-export async function postUtilisateur(req, res) {
-  if (!req.body.nom_utilisateur || !req.body.mot_de_passe) {
-    return res.status(400).json({ message: 'Nom et mot de passe requis.' });
-  }
-  const hache = await bcrypt.hash(req.body.mot_de_passe, 10);
-  const id = await creerUtilisateur(req.body, hache);
-  res.status(201).json({ id_utilisateur: id });
+export async function postUtilisateur(req, res, next) {
+  try {
+    if (!req.body.nom_utilisateur || !req.body.mot_de_passe) {
+      return res.status(400).json({ message: 'Nom et mot de passe requis.' });
+    }
+    const hache = await bcrypt.hash(req.body.mot_de_passe, 10);
+    const id = await creerUtilisateur(req.body, hache);
+    res.status(201).json({ id_utilisateur: id });
+  } catch (err) { next(err); }
 }
 
 // PUT /api/config/utilisateurs/:id
-export async function putUtilisateur(req, res) {
-  const hache = req.body.mot_de_passe
-    ? await bcrypt.hash(req.body.mot_de_passe, 10)
-    : null;
-  await modifierUtilisateur(req.params.id, req.body, hache);
-  res.json({ message: 'Utilisateur mis à jour.' });
+export async function putUtilisateur(req, res, next) {
+  try {
+    const hache = req.body.mot_de_passe
+      ? await bcrypt.hash(req.body.mot_de_passe, 10)
+      : null;
+    await modifierUtilisateur(req.params.id, req.body, hache);
+    res.json({ message: 'Utilisateur mis à jour.' });
+  } catch (err) { next(err); }
 }
 
 // GET /api/config/email/:id
-export async function getEmailConfig(req, res) {
-  res.json(await lireEmailConfig(req.params.id));
+export async function getEmailConfig(req, res, next) {
+  try {
+    res.json(await lireEmailConfig(req.params.id));
+  } catch (err) { next(err); }
 }
 
 // PUT /api/config/email/:id
-export async function putEmailConfig(req, res) {
-  await sauvegarderEmailConfig(req.params.id, req.body);
-  res.json({ message: 'Configuration e-mail enregistrée.' });
+export async function putEmailConfig(req, res, next) {
+  try {
+    await sauvegarderEmailConfig(req.params.id, req.body);
+    res.json({ message: 'Configuration e-mail enregistrée.' });
+  } catch (err) { next(err); }
 }
 
 // GET /api/config/prestations?archivees=1
-export async function getPrestations(req, res) {
-  res.json(await listerPrestations(req.query.archivees === '1'));
+export async function getPrestations(req, res, next) {
+  try {
+    res.json(await listerPrestations(req.query.archivees === '1'));
+  } catch (err) { next(err); }
 }
 
 // POST /api/config/prestations  +  PUT /api/config/prestations/:id
@@ -97,8 +115,10 @@ export async function supprimerPrestationCtrl(req, res, next) {
 }
 
 // GET /api/config/modes-paiement?archives=1
-export async function getModesPaiement(req, res) {
-  res.json(await listerModesPaiement(req.query.archives === '1'));
+export async function getModesPaiement(req, res, next) {
+  try {
+    res.json(await listerModesPaiement(req.query.archives === '1'));
+  } catch (err) { next(err); }
 }
 
 // POST /api/config/modes-paiement  +  PUT /api/config/modes-paiement/:id
@@ -128,7 +148,7 @@ export async function supprimerModePaiementCtrl(req, res, next) {
 }
 
 // POST /api/config/importer-villes  (body: { csv: "contenu brut du fichier" })
-export async function importerVillesCtrl(req, res) {
+export async function importerVillesCtrl(req, res, next) {
   const { csv } = req.body;
   if (!csv) return res.status(400).json({ message: 'Fichier CSV manquant.' });
   try {

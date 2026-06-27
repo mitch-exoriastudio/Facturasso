@@ -36,7 +36,7 @@ export async function listerClients({ rechercheTexte = '', avecArchives = false 
 }
 
 export async function trouverClientParId(id) {
-  return prisma.client.findUnique({ where: { id_client: id } });
+  return prisma.client.findUnique({ where: { id_client: Number(id) } });
 }
 
 export async function creerClient(donnees, nomUtilisateur) {
@@ -63,7 +63,7 @@ export async function creerClient(donnees, nomUtilisateur) {
 
 export async function modifierClient(id, donnees, nomUtilisateur) {
   await prisma.client.update({
-    where: { id_client: id },
+    where: { id_client: Number(id) },
     data: {
       civilite:                donnees.civilite    ?? '',
       nom:                     donnees.nom         ?? '',
@@ -84,7 +84,7 @@ export async function modifierClient(id, donnees, nomUtilisateur) {
 
 export async function archiverClient(id, archiver, nomUtilisateur) {
   await prisma.client.update({
-    where: { id_client: id },
+    where: { id_client: Number(id) },
     data: {
       archive:                 archiver,
       utilisateur_modification:nomUtilisateur,
