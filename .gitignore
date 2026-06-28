@@ -1,4 +1,20 @@
-**/node_modules/
-**/dist/
-serveur/.env
+# Dépendances
+node_modules/
+
+# Next.js
+/.next/
+/out/
+next-env.d.ts
+
+# Build
+/build
+dist/
+
+# Variables d'environnement
+.env
+.env*.local
+
+# Divers
 package-lock.json
+*.log
+.DS_Store

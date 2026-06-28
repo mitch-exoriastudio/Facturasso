@@ -10,64 +10,63 @@ La TVA est **optionnelle** : activée par dossier via `parametre_general.tva_act
 
 ## Commands
 
-Two servers must run simultaneously in development.
+Stack **unifiée Next.js** : front et back dans un seul projet, un seul `package.json` à la racine, un seul serveur (`npm run dev`, port **3000**). Pas de `concurrently`, pas de sous-projets `client/`/`serveur/`.
 
-**Backend** (`serveur/`):
 ```bash
-npm install
-cp .env.example .env          # renseigner les identifiants DB et JWT_SECRET
-npx prisma migrate dev        # appliquer les migrations sur la base principale
-npm run creer-admin -- ADMIN motdepasse   # créer le 1er compte admin
-npm run dev                   # démarre l'API sur http://localhost:4000 (--watch)
-```
-
-**Frontend** (`client/`):
-```bash
-npm install
-npm run dev              # démarre l'UI sur http://localhost:5173
-npm run build            # build de production
+npm install                               # installe tout + génère le client Prisma (postinstall)
+cp .env.example .env                      # renseigner DATABASE_URL et JWT_SECRET
+npm run db:migrate:dev                    # applique les migrations Prisma
+npm run creer-admin -- ADMIN motdepasse   # crée le 1er compte admin
+npm run dev                               # front + API sur http://localhost:3000
+npm run build                             # build de production (prisma generate + next build)
+npm start                                 # démarre le build de production
 ```
 
 No test runner is configured yet.
 
 ## Architecture
 
-Fullstack monorepo avec séparation franche frontend/backend :
+Projet **Next.js (App Router) unifié** — React + route handlers + Prisma dans une seule arborescence `src/` :
 
 ```
-client/   React + Vite + Tailwind CSS  (port 5173)
-serveur/  Node.js + Express + Prisma   (port 4000)
-Database/ MariaDB — schéma géré via Prisma (prisma/schema.prisma est canonique)
+src/app/         Pages (App Router) + route handlers API sous src/app/api/
+src/lib/         Code serveur : prisma (proxy multi-tenant), licence, auth, handler, modeles/
+src/composants/  Composants React réutilisables ('use client')
+src/vues/        Composants de page (Accueil, Clients, Configuration, Connexion)
+src/contextes/   Contextes React (auth, garde de navigation)
+src/services/    Client Axios + services d'appel API
+prisma/          schema.prisma (canonique) + migrations MariaDB + seed.js
+scripts/         creer-admin.js
 ```
 
-### Backend (`serveur/src/`)
+> ⚠️ Le dossier de pages s'appelle `src/vues/` (pas `src/pages/`) : `src/pages/` activerait le Pages Router de Next, en conflit avec l'App Router.
 
-Architecture en couches — `routes → controleurs → modeles → prisma/`.
+### Backend — route handlers (`src/app/api/`) + `src/lib/`
 
-- `app.js` enregistre les middlewares et monte les modules de routes sous `/api/auth`, `/api/public`, `/api/clients`, `/api/config`, `/api/factures`, `/api/paiements`.
-- `index.js` teste la connexion DB puis démarre le serveur.
-- `middlewares/` contient la vérification JWT, un vérificateur de droits fins (9 flags booléens par utilisateur dans `utilisateur`), et le middleware multi-tenant (sélection du PrismaClient par session/dossier).
-- `licence/` contient la logique Exoria : décryptage AES-256-GCM, quota de seats concurrents, heartbeat, release. En mode DEV (`LICENCE_DEV_BYPASS=true`), tous les accès sont autorisés sans appel Exoria.
-- JSON body limit est 15 MB (images logo/signature en base64).
-- Toutes les variables d'env sont dans `serveur/.env` (voir `.env.example`) : `DATABASE_URL`, `JWT_SECRET`, `JWT_DUREE`, `ORIGINE_CLIENT`, `LICENCE_DEV_BYPASS`, `EXORIA_API_URL`, `EXORIA_API_TOKEN`, `EXORIA_LICENCE_UUID`, `EXORIA_ENCRYPTION_PASSWORD`.
+Architecture en couches — `route.js (route + contrôleur) → lib/modeles → lib/prisma`.
+
+- Chaque endpoint est un `route.js` exportant `GET`/`POST`/`PUT`/`PATCH`/`DELETE`. Domaines : `/api/auth`, `/api/public`, `/api/clients`, `/api/config` (+ `/api/sante`).
+- `src/lib/handler.js` fournit `protege(droit, handler)` et `ouvert(handler)` — équivalents de l'ancien middleware Express. `protege` vérifie le JWT, le droit éventuel, établit le contexte Prisma du dossier (AsyncLocalStorage), et centralise la gestion d'erreurs (P2000 → libellé de colonne, etc.).
+- `src/lib/auth.js` : lecture/vérif du JWT (en-tête `Authorization: Bearer`), résolution du dossier, contrôle des 9 droits fins. L'admin (`droit_admin`) passe toujours.
+- `src/lib/licence.js` : logique Exoria (seats, heartbeat, release). En mode DEV (`LICENCE_DEV_BYPASS=true`), tous les accès sont autorisés sans appel Exoria.
+- Les route handlers tournent en runtime Node (défaut) ; pas de limite de taille de corps gênante pour les images logo/signature en base64.
+- Variables d'env dans `.env` racine (chargé automatiquement par Next) : `DATABASE_URL`, `JWT_SECRET`, `JWT_DUREE`, `LICENCE_DEV_BYPASS`, `EXORIA_*`.
 
 ### Multi-tenant (Dossiers)
 
 - Chaque dossier = une base MariaDB distincte avec ses propres credentials.
 - Les credentials de dossier viennent de la licence Exoria décryptée (`database_accesses[]`).
-- À la connexion, l'utilisateur choisit un dossier → credentials stockés en session.
-- Un `PrismaClient` est instancié dynamiquement par dossier (pool par clé `DATABASE_URL`, dans `src/config/prisma.js`).
-- Les migrations Prisma sont appliquées automatiquement à la première sélection d'un dossier.
+- À la connexion, l'utilisateur choisit un dossier → encodé dans le JWT (`dossier_id`).
+- Un `PrismaClient` est instancié dynamiquement par dossier (pool par clé `DATABASE_URL`, dans `src/lib/prisma.js`). Le proxy `prisma` délègue vers le client du dossier courant via **AsyncLocalStorage** ; `protege` exécute chaque handler dans `avecContexteDossier(...)` → **les modèles n'ont pas connaissance du tenant**.
 - En mode DEV bypass, un dossier fictif configuré dans `.env` est utilisé.
 
-### Frontend (`client/src/`)
+### Frontend (App Router)
 
-- `main.jsx` enveloppe l'app dans `ContexteAuth` (état auth + JWT storage) et `BrowserRouter`.
-- `App.jsx` définit deux groupes de routes : `/connexion` (public) et tout le reste dans `<RouteProtegee><Disposition>`.
-- `Disposition` fournit le layout sidebar pour toutes les pages authentifiées.
-- `services/api.js` est une instance Axios qui attache automatiquement le JWT et gère les redirections 401.
+- `src/app/layout.jsx` : layout racine (html/body), script anti-clignotement du dark mode, enveloppe l'app dans `src/app/providers.jsx` (`FournisseurGardeNav` + `FournisseurAuth`).
+- Groupe de routes `(protege)/` : `src/app/(protege)/layout.jsx` applique `RouteProtegee` + `Disposition` (sidebar) à toutes les pages authentifiées. `/connexion` est hors du groupe (page publique).
+- Navigation via `next/navigation` (`useRouter`, `usePathname`). L'auth reste en **localStorage + jeton Bearer** ; `RouteProtegee` attend le drapeau `pret` (session lue côté navigateur) avant de rediriger, pour éviter toute incohérence d'hydratation.
+- `src/services/api.js` : instance Axios (`baseURL: '/api'`, même origine) qui attache le JWT et gère les redirections 401.
 - Couleur Tailwind custom `primaire` : `#16a9bd` (cyan), définie dans `tailwind.config.js`.
-- Vite proxie `/api/*` vers `http://localhost:4000` en dev.
 - **Icônes** : Lucide React.
 - **Dark mode** : détection OS (`prefers-color-scheme`) + toggle manuel (stocké en `localStorage`). Géré via la classe `dark` sur `<html>` (stratégie Tailwind `class`).
 

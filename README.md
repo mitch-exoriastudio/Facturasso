@@ -2,9 +2,11 @@
 
 Réécriture web d'une application de facturation WinDev pour des **associations** (multi-tenant).
 
-- **Front-end** : React + Vite + Tailwind CSS (dossier `client/`)
-- **Back-end** : Node.js + Express + Prisma (dossier `serveur/`)
-- **Base de données** : MariaDB / MySQL — schéma géré via Prisma (`serveur/prisma/schema.prisma`)
+Stack **unifiée Next.js** : front-end et back-end dans un seul projet, un seul `package.json`, un seul serveur.
+
+- **Framework** : Next.js (App Router) + React + Tailwind CSS
+- **API** : route handlers Next.js (`src/app/api/`) + Prisma
+- **Base de données** : MariaDB / MySQL — schéma géré via Prisma (`prisma/schema.prisma`)
 
 > La TVA est **optionnelle** par dossier (`tva_active` dans `parametre_general`). Par défaut, tous les montants sont en HT (pour les associations exonérées de TVA).
 
@@ -20,42 +22,30 @@ Réécriture web d'une application de facturation WinDev pour des **associations
 
 ## Mise en route (développement)
 
-### 1. Configurer le backend
+### 1. Installer et configurer
 
 ```bash
-cd serveur
-npm install
-cp .env.example .env      # adapter les identifiants DB et JWT_SECRET
-                           # mettre LICENCE_DEV_BYPASS=true pour bypasser Exoria en dev
+npm install               # installe tout + génère le client Prisma
+cp .env.example .env      # adapter DATABASE_URL et JWT_SECRET
+                          # LICENCE_DEV_BYPASS=true pour bypasser Exoria en dev
 ```
 
 ### 2. Initialiser la base de données
 
 ```bash
-# Crée la base et applique les migrations Prisma
-npx prisma migrate dev --name init
-
-# Créer le 1er compte administrateur
-npm run creer-admin -- ADMIN motdepasse
+npm run db:migrate:dev    # crée la base et applique les migrations Prisma
+npm run creer-admin -- ADMIN motdepasse   # crée le 1er compte administrateur
 ```
 
-### 3. Démarrer le serveur (API)
+### 3. Démarrer l'application
 
 ```bash
-npm run dev               # démarre l'API sur http://localhost:4000
+npm run dev               # front + API sur http://localhost:3000
 ```
 
-### 4. Démarrer le client (interface)
+Ouvrir http://localhost:3000 et se connecter avec le compte créé à l'étape 2.
 
-Dans un **second** terminal :
-
-```bash
-cd client
-npm install
-npm run dev               # démarre l'interface sur http://localhost:5173
-```
-
-Ouvrir http://localhost:5173 et se connecter avec le compte créé à l'étape 2.
+> Build de production : `npm run build` puis `npm start`.
 
 ---
 
@@ -83,9 +73,15 @@ Ouvrir http://localhost:5173 et se connecter avec le compte créé à l'étape 2
 
 ```
 Facturasso/
-├── client/      Front-end React (Vite + Tailwind + Lucide React)
-├── serveur/     Back-end Node/Express
-│   └── prisma/  Schema Prisma + migrations MariaDB
+├── src/
+│   ├── app/         Pages (App Router) + route handlers API (src/app/api/)
+│   ├── lib/         Code serveur : prisma, licence, auth, handler, modeles/
+│   ├── composants/  Composants React réutilisables
+│   ├── vues/        Composants de page (Accueil, Clients, Configuration, Connexion)
+│   ├── contextes/   Contextes React (auth, garde de navigation)
+│   └── services/    Client Axios + services d'appel API
+├── prisma/      Schema Prisma + migrations MariaDB + seed
+├── scripts/     Scripts utilitaires (creer-admin)
 ├── Captures/    Captures d'écran de l'application d'origine
 └── Editions/    Exemples de PDF (brouillon, facture à payer, acquittée)
 ```
@@ -96,4 +92,4 @@ Facturasso/
 
 En production, les accès aux dossiers sont contrôlés par l'API **Exoria** (seats concurrents : acquire à la connexion, heartbeat périodique, release à la déconnexion).
 
-En développement, positionner `LICENCE_DEV_BYPASS=true` dans `serveur/.env` pour bypasser Exoria et utiliser un dossier local directement.
+En développement, positionner `LICENCE_DEV_BYPASS=true` dans `.env` (racine) pour bypasser Exoria et utiliser un dossier local directement.
