@@ -8,6 +8,21 @@ const nextConfig = {
   eslint: {
     ignoreDuringBuilds: true,
   },
+
+  // En développement uniquement : on interdit toute mise en cache navigateur
+  // pour que les modifications apparaissent sans avoir à faire CTRL+F5.
+  // (En production, on laisse Next.js gérer son cache normal d'assets hashés.)
+  async headers() {
+    if (process.env.NODE_ENV !== 'development') return [];
+    return [
+      {
+        source: '/:path*',
+        headers: [
+          { key: 'Cache-Control', value: 'no-store, must-revalidate' },
+        ],
+      },
+    ];
+  },
 };
 
 export default nextConfig;
