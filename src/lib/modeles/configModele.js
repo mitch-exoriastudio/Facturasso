@@ -84,7 +84,9 @@ export async function listerUtilisateurs(avecDesactives = false) {
   return prisma.utilisateur.findMany({
     where: avecDesactives ? undefined : { compte_desactive: false },
     select: CHAMPS_UTILISATEUR,
-    orderBy: { nom_utilisateur: 'asc' },
+    // Le superviseur (compte_superviseur = true) est toujours relégué en dernier ;
+    // ordre alphabétique sur le nom à l'intérieur de chaque groupe.
+    orderBy: [{ compte_superviseur: 'asc' }, { nom_utilisateur: 'asc' }],
   });
 }
 

@@ -46,8 +46,10 @@ export default function OngletEmail({ onModifie }) {
 
   useEffect(() => {
     configService.getUtilisateurs({}).then(data => {
-      setUtilisateurs(data);
-      if (data.length > 0) setIdSelectionne(data[0].id_utilisateur);
+      // Le compte superviseur n'est jamais sélectionnable pour l'envoi d'e-mails.
+      const liste = data.filter(u => !u.compte_superviseur);
+      setUtilisateurs(liste);
+      if (liste.length > 0) setIdSelectionne(liste[0].id_utilisateur);
     });
   }, []);
 
