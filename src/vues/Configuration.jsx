@@ -4,6 +4,7 @@
 //  prestations, modes paiement, superviseur).
 // =====================================================================
 import { useState, useEffect, useCallback } from 'react';
+import { Settings } from 'lucide-react';
 import { useAuth } from '../contextes/ContexteAuth.jsx';
 import { useGardeNav } from '../contextes/ContexteGardeNav.jsx';
 import { configService } from '../services/configService.js';
@@ -73,7 +74,10 @@ export default function Configuration() {
 
   return (
     <div>
-      <h1 className="text-2xl font-bold mb-5">Configuration</h1>
+      <div className="flex items-center gap-3 mb-5">
+        <Settings size={24} className="text-primaire" />
+        <h1 className="text-2xl font-bold text-gray-800 dark:text-gray-100">Configuration</h1>
+      </div>
 
       {/* Barre d'onglets */}
       <div className="flex gap-1 border-b border-gray-200 dark:border-gray-700 mb-6 overflow-x-auto overflow-y-hidden">
