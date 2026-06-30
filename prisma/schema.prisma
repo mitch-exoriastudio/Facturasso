@@ -93,7 +93,7 @@ model Prestation {
 model ModePaiement {
   id_mode_paiement     Int     @id @default(autoincrement())
   nom_mode_paiement    String  @db.VarChar(40)
-  abrege_mode_paiement String  @db.VarChar(10)
+  abrege_mode_paiement String  @unique @db.VarChar(10)
   ne_plus_proposer     Boolean @default(false)
 
   @@map("mode_paiement")

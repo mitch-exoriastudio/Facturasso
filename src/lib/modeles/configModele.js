@@ -172,7 +172,8 @@ export async function listerPrestations(avecArchivees = false) {
 }
 
 export async function sauvegarderPrestation(donnees) {
-  const ref = donnees.reference?.trim() || null;
+  // Référence : lettres/chiffres/tirets, majuscules forcées (filet de sécurité côté serveur).
+  const ref = donnees.reference?.replace(/[^A-Za-z0-9-]/g, '').toUpperCase() || null;
   if (donnees.id_prestation) {
     await prisma.prestation.update({
       where: { id_prestation: donnees.id_prestation },
@@ -208,12 +209,14 @@ export async function listerModesPaiement(avecArchives = false) {
 }
 
 export async function sauvegarderModePaiement(donnees) {
+  // Abrégé : lettres uniquement, majuscules forcées (filet de sécurité côté serveur).
+  const abrege = donnees.abrege_mode_paiement?.replace(/[^A-Za-z]/g, '').toUpperCase() || '';
   if (donnees.id_mode_paiement) {
     await prisma.modePaiement.update({
       where: { id_mode_paiement: donnees.id_mode_paiement },
       data: {
         nom_mode_paiement:    donnees.nom_mode_paiement,
-        abrege_mode_paiement: donnees.abrege_mode_paiement,
+        abrege_mode_paiement: abrege,
         ne_plus_proposer:     !!donnees.ne_plus_proposer,
       },
     });
@@ -221,7 +224,7 @@ export async function sauvegarderModePaiement(donnees) {
     await prisma.modePaiement.create({
       data: {
         nom_mode_paiement:    donnees.nom_mode_paiement,
-        abrege_mode_paiement: donnees.abrege_mode_paiement,
+        abrege_mode_paiement: abrege,
       },
     });
   }

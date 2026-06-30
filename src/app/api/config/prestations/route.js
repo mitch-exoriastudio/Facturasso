@@ -10,8 +10,13 @@ export const GET = protege('droit_config', async (req) => {
 
 // POST /api/config/prestations
 export const POST = protege('droit_config', async (req) => {
+  const body = await req.json();
+  const ref = (body.reference ?? '').trim();
+  if (ref && !/^[A-Za-z0-9-]+$/.test(ref)) {
+    return NextResponse.json({ message: 'La référence ne peut contenir que des lettres, des chiffres et des tirets.' }, { status: 400 });
+  }
   try {
-    await sauvegarderPrestation({ ...(await req.json()), id_prestation: null });
+    await sauvegarderPrestation({ ...body, id_prestation: null });
     return NextResponse.json({ message: 'Prestation enregistrée.' });
   } catch (err) {
     if (err.code === 'ER_DUP_ENTRY') {

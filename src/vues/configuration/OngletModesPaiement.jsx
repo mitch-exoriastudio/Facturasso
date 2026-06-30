@@ -130,8 +130,9 @@ export default function OngletModesPaiement() {
                   placeholder="Nom (ex. Virement)"
                   className={CL + ' flex-1 min-w-0'} autoComplete="nope" />
                 <input value={m.abrege_mode_paiement ?? ''}
-                  onChange={e => majLigne(m, 'abrege_mode_paiement', e.target.value.toUpperCase())}
+                  onChange={e => majLigne(m, 'abrege_mode_paiement', e.target.value.replace(/[^A-Za-z]/g, '').toUpperCase())}
                   placeholder="VIR"
+                  title="Lettres uniquement"
                   className={CL + ' w-24'} autoComplete="nope" />
                 <label className="flex items-center gap-1 text-xs text-gray-500 dark:text-gray-400 whitespace-nowrap w-20 justify-center"
                   title="Archiver ce mode (ne plus le proposer à la saisie)">

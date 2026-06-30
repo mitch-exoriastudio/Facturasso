@@ -154,8 +154,9 @@ export default function OngletPrestations() {
                   placeholder="Désignation"
                   className={CL + ' flex-1 min-w-0 hidden sm:block'} autoComplete="nope" />
                 <input value={p.reference ?? ''}
-                  onChange={e => majLigne(p, 'reference', e.target.value.toUpperCase())}
+                  onChange={e => majLigne(p, 'reference', e.target.value.replace(/[^A-Za-z0-9-]/g, '').toUpperCase())}
                   placeholder="Réf."
+                  title="Lettres, chiffres et tirets uniquement"
                   className={CL + ' w-28'} autoComplete="nope" />
                 <div className="flex items-center gap-0.5">
                   <ChampNumerique step={0.01} value={p.prix_unitaire ?? 0} min={0}
