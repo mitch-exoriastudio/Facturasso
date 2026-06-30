@@ -241,7 +241,7 @@ export default function OngletUtilisateurs({ utilisateurConnecte, onModifie }) {
                     ? 'bg-gray-200 dark:bg-gray-700 text-gray-400 dark:text-gray-500'
                     : actif
                       ? 'bg-primaire text-white'
-                      : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300'}`}>
+                      : 'bg-primaire-clair dark:bg-primaire/20 text-primaire-fonce dark:text-primaire'}`}>
                   {initiales(u.nom_utilisateur)}
                 </span>
                 {/* Nom + rôle */}

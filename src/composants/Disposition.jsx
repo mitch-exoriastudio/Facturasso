@@ -41,6 +41,14 @@ function useModeSombre() {
   return { sombre, basculer };
 }
 
+// Initiales pour la pastille (1 à 2 caractères).
+function initiales(nom) {
+  if (!nom) return '?';
+  const mots = nom.trim().split(/\s+/);
+  if (mots.length > 1) return (mots[0][0] + mots[1][0]).toUpperCase();
+  return nom.slice(0, 2).toUpperCase();
+}
+
 // ── Composant ─────────────────────────────────────────────────────────
 export default function Disposition({ children }) {
   const { utilisateur, dossier, seDeconnecter } = useAuth();
@@ -128,8 +136,13 @@ export default function Disposition({ children }) {
         )}
 
         <div className="flex items-center justify-between px-3 pt-2">
-          <span className="text-xs text-gray-400 dark:text-gray-500 truncate max-w-[120px]">
-            {utilisateur?.nom_utilisateur}
+          <span className="flex items-center gap-2 min-w-0">
+            <span className="shrink-0 w-7 h-7 rounded-full bg-primaire-clair dark:bg-primaire/20 text-primaire-fonce dark:text-primaire flex items-center justify-center text-[10px] font-semibold">
+              {initiales(utilisateur?.nom_utilisateur)}
+            </span>
+            <span className="text-xs text-gray-400 dark:text-gray-500 truncate max-w-[100px]">
+              {utilisateur?.nom_utilisateur}
+            </span>
           </span>
           {/* Toggle dark mode */}
           <button
