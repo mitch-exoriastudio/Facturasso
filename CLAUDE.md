@@ -69,6 +69,7 @@ Architecture en couches — `route.js (route + contrôleur) → lib/modeles → 
 - Couleur Tailwind custom `primaire` : `#16a9bd` (cyan), définie dans `tailwind.config.js`.
 - **Icônes** : Lucide React.
 - **Dark mode** : détection OS (`prefers-color-scheme`) + toggle manuel (stocké en `localStorage`). Géré via la classe `dark` sur `<html>` (stratégie Tailwind `class`).
+- **Anti-autofill (`src/composants/ChampSansAutofill.jsx`)** : Chrome/Firefox ignorent volontairement `autocomplete="off"` pour les adresses et proposent « Enregistrer l'adresse ? » sur les fiches client / config. Ces champs concernent des **tiers**, pas l'utilisateur. `ChampSansAutofill` est un drop-in de `<input>` qui passe le champ en `readOnly` tant qu'il n'a pas le focus (déverrouillé au 1er focus) → le navigateur ne le classe plus comme adresse enregistrable, sans gêner la saisie. Utilisé dans `FicheClient`, `ChampAutoVille` et l'onglet Mentions (composant `Champ`). **Ne pas l'utiliser sur `Connexion.jsx`** : l'enregistrement de l'identifiant y est conservé (`autoComplete="username"`/`"current-password"`).
 
 ### TVA
 

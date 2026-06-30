@@ -4,6 +4,7 @@
 import { useState } from 'react';
 import { X, Loader2 } from 'lucide-react';
 import ChampAutoVille from './ChampAutoVille.jsx';
+import ChampSansAutofill from './ChampSansAutofill.jsx';
 
 const CIVILITES = ['', 'M.', 'Mme', 'Mlle', 'Dr', 'Me'];
 
@@ -75,7 +76,7 @@ export default function FicheClient({ client, peutModifier, onValider, onFermer 
           </button>
         </div>
 
-        {/* autoComplete="off" + "nope" sur les champs pour bloquer la saisie auto du navigateur */}
+        {/* autoComplete="off" + champs en ChampSansAutofill (readonly au focus) pour bloquer la saisie/enregistrement auto du navigateur */}
         <form onSubmit={soumettre} autoComplete="off" className="px-6 py-5 space-y-4">
 
           {erreur && (
@@ -95,13 +96,13 @@ export default function FicheClient({ client, peutModifier, onValider, onFermer 
             </div>
             <div className="flex-1">
               <label className={classeLabel}>Nom <span className="text-red-500">*</span></label>
-              <input value={form.nom} onChange={maj('nom')} disabled={!peutModifier}
-                autoComplete="nope" className={classeInput} />
+              <ChampSansAutofill value={form.nom} onChange={maj('nom')} disabled={!peutModifier}
+                className={classeInput} />
             </div>
             <div className="flex-1">
               <label className={classeLabel}>Prénom</label>
-              <input value={form.prenom} onChange={maj('prenom')} disabled={!peutModifier}
-                autoComplete="nope" className={classeInput} />
+              <ChampSansAutofill value={form.prenom} onChange={maj('prenom')} disabled={!peutModifier}
+                className={classeInput} />
             </div>
           </div>
 
@@ -109,8 +110,8 @@ export default function FicheClient({ client, peutModifier, onValider, onFermer 
           {[['adresse1', 'Adresse'], ['adresse2', 'Adresse (suite)'], ['adresse3', 'Adresse (suite 2)']].map(([champ, libelle]) => (
             <div key={champ}>
               <label className={classeLabel}>{libelle}</label>
-              <input value={form[champ]} onChange={maj(champ)} disabled={!peutModifier}
-                autoComplete="nope" className={classeInput} />
+              <ChampSansAutofill value={form[champ]} onChange={maj(champ)} disabled={!peutModifier}
+                className={classeInput} />
             </div>
           ))}
 
@@ -127,7 +128,7 @@ export default function FicheClient({ client, peutModifier, onValider, onFermer 
           {/* Pays */}
           <div>
             <label className={classeLabel}>Pays</label>
-            <input value={form.pays} onChange={maj('pays')} disabled={!peutModifier}
+            <ChampSansAutofill value={form.pays} onChange={maj('pays')} disabled={!peutModifier}
               className={classeInput} />
           </div>
 
@@ -135,21 +136,21 @@ export default function FicheClient({ client, peutModifier, onValider, onFermer 
           <div className="flex gap-3">
             <div className="flex-1">
               <label className={classeLabel}>Téléphone</label>
-              <input value={form.telephone} onChange={maj('telephone')} disabled={!peutModifier}
-                autoComplete="nope" className={classeInput} />
+              <ChampSansAutofill value={form.telephone} onChange={maj('telephone')} disabled={!peutModifier}
+                className={classeInput} />
             </div>
             <div className="flex-1">
               <label className={classeLabel}>Autre téléphone</label>
-              <input value={form.mobile} onChange={maj('mobile')} disabled={!peutModifier}
-                autoComplete="nope" className={classeInput} />
+              <ChampSansAutofill value={form.mobile} onChange={maj('mobile')} disabled={!peutModifier}
+                className={classeInput} />
             </div>
           </div>
 
           {/* E-mail */}
           <div>
             <label className={classeLabel}>E-mail</label>
-            <input type="email" value={form.email} onChange={maj('email')} disabled={!peutModifier}
-              autoComplete="nope" className={classeInput} />
+            <ChampSansAutofill type="email" value={form.email} onChange={maj('email')} disabled={!peutModifier}
+              className={classeInput} />
           </div>
 
           {/* Boutons */}

@@ -3,6 +3,7 @@
 // =====================================================================
 import { useState, useMemo, useEffect } from 'react';
 import { configService } from '../../services/configService.js';
+import ChampSansAutofill from '../../composants/ChampSansAutofill.jsx';
 
 const CL = 'w-full border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-2 text-sm bg-white dark:bg-gray-800 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-primaire';
 const CL_AREA = CL + ' resize-none';
@@ -187,7 +188,7 @@ function Champ({ label, value, onChange, maxLength }) {
   return (
     <div>
       <label className="block text-xs text-gray-500 dark:text-gray-400 mb-1">{label}</label>
-      <input value={value ?? ''} onChange={onChange} autoComplete="off" maxLength={maxLength} className={CL} />
+      <ChampSansAutofill value={value ?? ''} onChange={onChange} maxLength={maxLength} className={CL} />
     </div>
   );
 }

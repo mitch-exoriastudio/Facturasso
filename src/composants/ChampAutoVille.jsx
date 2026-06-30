@@ -3,6 +3,7 @@
 // =====================================================================
 import { useState, useRef } from 'react';
 import { clientService } from '../services/clientService.js';
+import ChampSansAutofill from './ChampSansAutofill.jsx';
 
 export default function ChampAutoVille({ codePostal, ville, onChange, disabled }) {
   const [suggestions, setSuggestions] = useState([]);
@@ -36,7 +37,7 @@ export default function ChampAutoVille({ codePostal, ville, onChange, disabled }
       {/* Code postal */}
       <div className="w-28">
         <label className={classeLabel}>Code postal</label>
-        <input
+        <ChampSansAutofill
           value={codePostal}
           disabled={disabled}
           onChange={(e) => {
@@ -50,7 +51,7 @@ export default function ChampAutoVille({ codePostal, ville, onChange, disabled }
       {/* Ville */}
       <div className="flex-1">
         <label className={classeLabel}>Ville</label>
-        <input
+        <ChampSansAutofill
           value={ville}
           disabled={disabled}
           onChange={(e) => {
