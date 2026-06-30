@@ -2,12 +2,20 @@ import { NextResponse } from 'next/server';
 import bcrypt from 'bcryptjs';
 import { protege } from '@/lib/handler.js';
 import { listerUtilisateurs, creerUtilisateur } from '@/lib/modeles/configModele.js';
-import { EMAIL_INVALIDE, emailValide } from '@/lib/validation.js';
+import { EMAIL_INVALIDE, emailValide, TELEPHONE_REQUIS, telephoneValide } from '@/lib/validation.js';
 
 // GET /api/config/utilisateurs?desactives=1
-export const GET = protege('droit_config', async (req) => {
+export const GET = protege('droit_config', async (req, { utilisateur }) => {
   const { searchParams } = new URL(req.url);
-  return NextResponse.json(await listerUtilisateurs(searchParams.get('desactives') === '1'));
+  const liste = await listerUtilisateurs(searchParams.get('desactives') === '1');
+  // Les coordonnées du superviseur (e-mail + téléphone) sont confidentielles :
+  // personne ne les voit, sauf le superviseur lui-même sur sa propre fiche.
+  const liste_filtree = liste.map((u) =>
+    u.compte_superviseur && u.id_utilisateur !== utilisateur.id_utilisateur
+      ? { ...u, email: null, telephone: null }
+      : u,
+  );
+  return NextResponse.json(liste_filtree);
 });
 
 // POST /api/config/utilisateurs
@@ -19,6 +27,10 @@ export const POST = protege('droit_config', async (req) => {
   // L'e-mail est l'identifiant de connexion → obligatoire et valide.
   if (!emailValide(body.email)) {
     return NextResponse.json({ message: EMAIL_INVALIDE }, { status: 400 });
+  }
+  // Le mobile est obligatoire dès la création (future connexion OTP).
+  if (!telephoneValide(body.telephone)) {
+    return NextResponse.json({ message: TELEPHONE_REQUIS }, { status: 400 });
   }
   const hache = await bcrypt.hash(body.mot_de_passe, 10);
   const id = await creerUtilisateur(body, hache);

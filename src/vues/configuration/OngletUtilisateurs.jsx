@@ -61,13 +61,11 @@ function initiales(nom) {
   return nom.slice(0, 2).toUpperCase();
 }
 
-// Résumé du rôle affiché dans la liste.
-function resumeRole(u) {
-  if (u.compte_superviseur) return 'Superviseur';
+// Libellé du rôle affiché sous chaque utilisateur dans la liste.
+function libelleRole(u) {
   if (u.droit_admin) return 'Administrateur';
-  const nb = DROITS.filter(d => d.cle !== 'droit_admin' && u[d.cle]).length;
-  if (nb === 0) return 'Aucun droit';
-  return `${nb} droit${nb > 1 ? 's' : ''}`;
+  if (u.compte_superviseur) return 'Superviseur';
+  return 'Utilisateur';
 }
 
 export default function OngletUtilisateurs({ utilisateurConnecte, onModifie }) {
@@ -175,6 +173,11 @@ export default function OngletUtilisateurs({ utilisateurConnecte, onModifie }) {
   async function sauvegarder(e) {
     e.preventDefault();
     setMessage('');
+    // Le mobile est obligatoire à la création (future connexion OTP).
+    if (estNouveau && !form.telephone.trim()) {
+      setMessage('Numéro de téléphone mobile requis.');
+      return;
+    }
     setEnCours(true);
     try {
       if (estNouveau) {
@@ -254,7 +257,7 @@ export default function OngletUtilisateurs({ utilisateurConnecte, onModifie }) {
                   </span>
                   <span className="block text-xs text-gray-400 dark:text-gray-500 truncate">
                     {!!u.compte_desactive && <span className="text-amber-500 dark:text-amber-400">Désactivé · </span>}
-                    {u.email || resumeRole(u)}
+                    {libelleRole(u)}
                   </span>
                 </span>
                 {peutSupprimer(u) && (
@@ -350,7 +353,9 @@ export default function OngletUtilisateurs({ utilisateurConnecte, onModifie }) {
                     autoComplete="off" disabled={formulaireBloque} className={CL} />
                 </div>
                 <div>
-                  <label className="block text-xs text-gray-500 dark:text-gray-400 mb-1">Téléphone mobile</label>
+                  <label className="block text-xs text-gray-500 dark:text-gray-400 mb-1">
+                    Téléphone mobile {estNouveau && <span className="text-red-500">*</span>}
+                  </label>
                   <input type="tel" value={form.telephone}
                     onChange={e => setForm(f => ({ ...f, telephone: e.target.value }))}
                     autoComplete="off" disabled={formulaireBloque} className={CL} />
