@@ -75,15 +75,15 @@ export default function OngletModesPaiement() {
   return (
     <div className="max-w-xl">
 
-      {/* ── Barre d'outils ─────────────────────────────────────────── */}
-      <div className="flex items-center justify-between gap-3 mb-3">
-        <label className="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400">
+      {/* ── Zone d'outils : filtre (à gauche) + action à droite ────── */}
+      <div className="flex items-center justify-between gap-3 mb-4 p-3 bg-gray-50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 rounded-lg">
+        <label className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-300">
           <input type="checkbox" checked={avecArchives} onChange={e => setAvecArchives(e.target.checked)}
             className="accent-primaire" />
           Afficher les modes archivés
         </label>
         <button onClick={ajouterLigne}
-          className="flex items-center gap-1.5 bg-primaire hover:bg-primaire-fonce dark:bg-primaire-fonce dark:hover:bg-primaire text-white text-sm font-medium px-3 py-2 rounded-lg transition whitespace-nowrap">
+          className="inline-flex items-center justify-center gap-2 bg-primaire hover:bg-primaire-fonce dark:bg-primaire-fonce dark:hover:bg-primaire text-white text-sm font-medium px-3 py-2 rounded-lg transition whitespace-nowrap">
           <Plus className="w-4 h-4" /> Nouveau mode
         </button>
       </div>

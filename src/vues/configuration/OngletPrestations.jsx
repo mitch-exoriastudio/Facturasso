@@ -2,7 +2,7 @@
 //  Onglet 4 — Liste des prestations (catalogue)
 // =====================================================================
 import { useState, useEffect, useRef } from 'react';
-import { Plus, Check, Trash2, Package } from 'lucide-react';
+import { Plus, Check, Trash2, Package, Search } from 'lucide-react';
 import { configService } from '../../services/configService.js';
 import ModalConfirmation from '../../composants/ModalConfirmation.jsx';
 import ChampNumerique from '../../composants/ChampNumerique.jsx';
@@ -79,24 +79,28 @@ export default function OngletPrestations() {
   );
 
   return (
-    <div className="max-w-3xl">
+    <div className="max-w-4xl">
 
-      {/* ── Barre d'outils ─────────────────────────────────────────── */}
-      <div className="flex gap-2 mb-3">
-        <input value={recherche} onChange={e => setRecherche(e.target.value)}
-          placeholder="Rechercher référence ou désignation…"
-          className="flex-1 border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-2 text-sm bg-white dark:bg-gray-800 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-primaire" />
-        <button onClick={ajouterLigne}
-          className="flex items-center gap-1.5 bg-primaire hover:bg-primaire-fonce dark:bg-primaire-fonce dark:hover:bg-primaire text-white text-sm font-medium px-3 py-2 rounded-lg transition whitespace-nowrap">
-          <Plus className="w-4 h-4" /> Nouvelle prestation
-        </button>
+      {/* ── Zone d'outils : recherche + action + filtre ────────────── */}
+      <div className="mb-4 p-4 bg-gray-50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 rounded-lg">
+        <div className="flex flex-col sm:flex-row sm:items-center gap-4">
+          <div className="relative flex-1">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 dark:text-gray-500 pointer-events-none" />
+            <input value={recherche} onChange={e => setRecherche(e.target.value)}
+              placeholder="Rechercher référence ou désignation…"
+              className="w-full border border-gray-200 dark:border-gray-700 rounded-lg pl-9 pr-3 py-2 text-sm bg-white dark:bg-gray-800 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-primaire" />
+          </div>
+          <label className="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400 whitespace-nowrap">
+            <input type="checkbox" checked={avecArchivees} onChange={e => setAvecArchivees(e.target.checked)}
+              className="accent-primaire" />
+            Afficher les archivées
+          </label>
+          <button onClick={ajouterLigne}
+            className="inline-flex items-center justify-center gap-2 bg-primaire hover:bg-primaire-fonce dark:bg-primaire-fonce dark:hover:bg-primaire text-white text-sm font-medium px-3 py-2 rounded-lg transition whitespace-nowrap">
+            <Plus className="w-4 h-4" /> Nouvelle prestation
+          </button>
+        </div>
       </div>
-
-      <label className="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400 mb-4 px-1">
-        <input type="checkbox" checked={avecArchivees} onChange={e => setAvecArchivees(e.target.checked)}
-          className="accent-primaire" />
-        Afficher les prestations archivées
-      </label>
 
       {chargement && <SquelettePrestations />}
 
