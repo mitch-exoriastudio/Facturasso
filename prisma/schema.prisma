@@ -26,7 +26,7 @@ model Utilisateur {
   droit_consult_clients Boolean      @default(false)
   droit_ajout_clients   Boolean      @default(false)
   droit_config          Boolean      @default(false)
-  compte_protege        Boolean      @default(false)
+  compte_superviseur    Boolean      @default(false)
   email_config          EmailConfig?
 
   @@map("utilisateur")

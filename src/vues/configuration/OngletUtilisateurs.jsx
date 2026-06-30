@@ -4,9 +4,10 @@
 //  droits à droite. Responsive (empilement vertical sous lg).
 // =====================================================================
 import { useState, useEffect, useMemo } from 'react';
-import { Plus, ChevronRight, Eye, EyeOff, UserCog, ShieldCheck, Lock } from 'lucide-react';
+import { Plus, ChevronRight, Eye, EyeOff, UserCog, ShieldCheck, Lock, Trash2 } from 'lucide-react';
 import { configService } from '../../services/configService.js';
 import ModalConfirmation from '../../composants/ModalConfirmation.jsx';
+import { useToast } from '../../contextes/ContexteToast.jsx';
 
 // Liste à plat des droits (sert pour le formulaire vide et le « tout cocher » admin).
 const DROITS = [
@@ -62,6 +63,7 @@ function initiales(nom) {
 
 // Résumé du rôle affiché dans la liste.
 function resumeRole(u) {
+  if (u.compte_superviseur) return 'Superviseur';
   if (u.droit_admin) return 'Administrateur';
   const nb = DROITS.filter(d => d.cle !== 'droit_admin' && u[d.cle]).length;
   if (nb === 0) return 'Aucun droit';
@@ -69,6 +71,7 @@ function resumeRole(u) {
 }
 
 export default function OngletUtilisateurs({ utilisateurConnecte, onModifie }) {
+  const toast = useToast();
   const [utilisateurs, setUtilisateurs] = useState([]);
   const [avecDesactives, setAvecDesactives] = useState(false);
   const [selectionne, setSelectionne] = useState(null); // utilisateur sélectionné
@@ -79,6 +82,42 @@ export default function OngletUtilisateurs({ utilisateurConnecte, onModifie }) {
   const [montrerMdp, setMontrerMdp] = useState(false);
   const [enCours, setEnCours] = useState(false);
   const [actionEnAttente, setActionEnAttente] = useState(null); // garde changement de sélection
+  const [suppressionCible, setSuppressionCible] = useState(null); // utilisateur en attente de suppression
+  const [suppressionEnCours, setSuppressionEnCours] = useState(false);
+
+  // Reproduit côté client les règles d'autorisation du back (le back reste l'autorité).
+  // Détermine si l'utilisateur connecté peut supprimer/désactiver le compte u.
+  function peutSupprimer(u) {
+    if (!utilisateurConnecte) return false;
+    if (u.id_utilisateur === utilisateurConnecte.id_utilisateur) return false; // pas soi-même
+    if (u.compte_superviseur) return false;                                    // jamais le superviseur
+    if (utilisateurConnecte.compte_superviseur) return true;                   // superviseur : tout
+    if (!utilisateurConnecte.droit_admin) return false;                        // non-admin : rien
+    return !u.droit_admin;                                                     // admin : non-admins seulement
+  }
+
+  async function confirmerSuppression() {
+    if (!suppressionCible) return;
+    setSuppressionEnCours(true);
+    try {
+      const res = await configService.supprimerUtilisateur(suppressionCible.id_utilisateur);
+      toast.succes(res.message || 'Compte traité.');
+      // Si le compte affiché vient d'être supprimé/désactivé, on referme le détail.
+      if (selectionne?.id_utilisateur === suppressionCible.id_utilisateur) {
+        setSelectionne(null);
+        setEstNouveau(false);
+        setReference(null);
+        setForm(FORM_VIDE);
+      }
+      setSuppressionCible(null);
+      await charger();
+    } catch (err) {
+      toast.erreur(err.response?.data?.message || 'Suppression impossible.');
+      setSuppressionCible(null);
+    } finally {
+      setSuppressionEnCours(false);
+    }
+  }
 
   const ouvert = selectionne !== null || estNouveau;
   const modifie = useMemo(() => ouvert && reference !== null && estModifie(form, reference), [form, reference, ouvert]);
@@ -163,7 +202,7 @@ export default function OngletUtilisateurs({ utilisateurConnecte, onModifie }) {
   const enErreur = message && message !== 'Enregistré !';
   const adminVerrouille = !estNouveau && selectionne?.id_utilisateur === utilisateurConnecte?.id_utilisateur;
   const estProprietaire = selectionne?.id_utilisateur === utilisateurConnecte?.id_utilisateur;
-  const formulaireBloque = !estNouveau && !!selectionne?.compte_protege && !estProprietaire;
+  const formulaireBloque = !estNouveau && !!selectionne?.compte_superviseur && !estProprietaire;
 
   return (
     <div className="flex flex-col lg:flex-row gap-6 max-w-5xl">
@@ -189,8 +228,10 @@ export default function OngletUtilisateurs({ utilisateurConnecte, onModifie }) {
           {utilisateurs.map(u => {
             const actif = selectionne?.id_utilisateur === u.id_utilisateur && !estNouveau;
             return (
-              <button key={u.id_utilisateur} onClick={() => demanderSelection(u)}
-                className={`w-full flex items-center gap-3 text-left px-3 py-2 rounded-lg transition border
+              <div key={u.id_utilisateur} role="button" tabIndex={0}
+                onClick={() => demanderSelection(u)}
+                onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); demanderSelection(u); } }}
+                className={`group w-full flex items-center gap-3 text-left px-3 py-2 rounded-lg transition border cursor-pointer
                   ${actif
                     ? 'bg-primaire-clair dark:bg-primaire/20 border-primaire/40 dark:border-primaire/40'
                     : 'border-transparent hover:bg-gray-100 dark:hover:bg-gray-800'}`}>
@@ -208,7 +249,7 @@ export default function OngletUtilisateurs({ utilisateurConnecte, onModifie }) {
                   <span className={`flex items-center gap-1.5 text-sm font-medium truncate
                     ${actif ? 'text-primaire-fonce dark:text-primaire' : 'text-gray-700 dark:text-gray-200'}`}>
                     {u.droit_admin && <ShieldCheck className="w-3.5 h-3.5 shrink-0" />}
-                    {u.compte_protege && <Lock className="w-3 h-3 shrink-0 text-amber-500" />}
+                    {u.compte_superviseur && <Lock className="w-3 h-3 shrink-0 text-amber-500" />}
                     {u.nom_utilisateur}
                   </span>
                   <span className="block text-xs text-gray-400 dark:text-gray-500 truncate">
@@ -216,8 +257,16 @@ export default function OngletUtilisateurs({ utilisateurConnecte, onModifie }) {
                     {resumeRole(u)}
                   </span>
                 </span>
+                {peutSupprimer(u) && (
+                  <button type="button"
+                    onClick={e => { e.stopPropagation(); setSuppressionCible(u); }}
+                    title="Supprimer le compte"
+                    className="shrink-0 p-1.5 rounded-lg text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 opacity-0 group-hover:opacity-100 focus:opacity-100 transition">
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                )}
                 <ChevronRight className={`w-4 h-4 shrink-0 ${actif ? 'text-primaire' : 'text-gray-300 dark:text-gray-600'}`} />
-              </button>
+              </div>
             );
           })}
         </div>
@@ -250,7 +299,7 @@ export default function OngletUtilisateurs({ utilisateurConnecte, onModifie }) {
             {formulaireBloque && (
               <div className="flex items-center gap-2 text-sm rounded-lg p-3 bg-amber-50 dark:bg-amber-900/20 text-amber-700 dark:text-amber-400 border border-amber-200 dark:border-amber-800">
                 <Lock className="w-4 h-4 shrink-0" />
-                Ce compte est protégé. Seul son propriétaire peut le modifier.
+                Ce compte superviseur ne peut être modifié que par lui-même.
               </div>
             )}
 
@@ -291,10 +340,10 @@ export default function OngletUtilisateurs({ utilisateurConnecte, onModifie }) {
                   </div>
                 </div>
               </div>
-              <label className={`flex items-center gap-2 text-sm text-gray-600 dark:text-gray-300 ${formulaireBloque || selectionne?.compte_protege ? 'opacity-50 cursor-not-allowed' : ''}`}>
+              <label className={`flex items-center gap-2 text-sm text-gray-600 dark:text-gray-300 ${formulaireBloque || selectionne?.compte_superviseur ? 'opacity-50 cursor-not-allowed' : ''}`}>
                 <input type="checkbox" checked={!!form.compte_desactive}
                   onChange={e => setForm(f => ({ ...f, compte_desactive: e.target.checked }))}
-                  disabled={formulaireBloque || !!selectionne?.compte_protege}
+                  disabled={formulaireBloque || !!selectionne?.compte_superviseur}
                   className="accent-primaire" />
                 Compte désactivé
               </label>
@@ -368,6 +417,18 @@ export default function OngletUtilisateurs({ utilisateurConnecte, onModifie }) {
         labelAnnuler="Rester ici"
         onConfirmer={() => { actionEnAttente?.(); setActionEnAttente(null); }}
         onAnnuler={() => setActionEnAttente(null)}
+      />
+
+      {/* Modale — suppression / désactivation d'un compte */}
+      <ModalConfirmation
+        ouvert={suppressionCible !== null}
+        variante="danger"
+        titre={`Supprimer « ${suppressionCible?.nom_utilisateur ?? ''} » ?`}
+        message="Le compte sera supprimé définitivement s'il n'a aucune activité (factures, brouillons, paiements). Sinon il sera simplement désactivé, pour préserver la traçabilité."
+        labelConfirmer={suppressionEnCours ? 'Suppression…' : 'Supprimer'}
+        labelAnnuler="Annuler"
+        onConfirmer={confirmerSuppression}
+        onAnnuler={() => { if (!suppressionEnCours) setSuppressionCible(null); }}
       />
     </div>
   );

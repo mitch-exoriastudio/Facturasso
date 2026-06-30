@@ -13,6 +13,7 @@ export const configService = {
   getUtilisateurs: (p) => api.get('/config/utilisateurs', { params: p }).then(r => r.data),
   postUtilisateur: (d) => api.post('/config/utilisateurs', d).then(r => r.data),
   putUtilisateur: (id, d) => api.put(`/config/utilisateurs/${id}`, d).then(r => r.data),
+  supprimerUtilisateur: (id) => api.delete(`/config/utilisateurs/${id}`).then(r => r.data),
 
   // E-mail
   getEmail: (id) => api.get(`/config/email/${id}`).then(r => r.data),

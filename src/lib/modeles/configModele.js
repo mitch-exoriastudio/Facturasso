@@ -58,7 +58,7 @@ const CHAMPS_UTILISATEUR = {
   nom_utilisateur:      true,
   droit_admin:          true,
   compte_desactive:     true,
-  compte_protege:       true,
+  compte_superviseur:   true,
   droit_consult_fac:    true,
   droit_ajout_fac:      true,
   droit_consult_paiem:  true,
@@ -115,6 +115,35 @@ export async function modifierUtilisateur(id, donnees, motDePasseHache) {
   if (motDePasseHache) data.mot_de_passe_hache = motDePasseHache;
 
   await prisma.utilisateur.update({ where: { id_utilisateur: id }, data });
+}
+
+// Vrai si le nom apparaît en création OU modification dans brouillon/facture/paiement.
+// Sert à décider entre suppression définitive (aucune activité) et désactivation.
+export async function utilisateurAActivite(nomUtilisateur) {
+  const ou = { OR: [{ utilisateur_creation: nomUtilisateur }, { utilisateur_modification: nomUtilisateur }] };
+  const [brouillons, factures, paiements] = await Promise.all([
+    prisma.brouillon.count({ where: ou }),
+    prisma.facture.count({ where: ou }),
+    prisma.paiement.count({ where: ou }),
+  ]);
+  return brouillons + factures + paiements > 0;
+}
+
+export async function desactiverUtilisateur(id) {
+  await prisma.utilisateur.update({
+    where: { id_utilisateur: id },
+    data: { compte_desactive: true },
+  });
+}
+
+export async function supprimerUtilisateur(id) {
+  // La config e-mail liée est supprimée en cascade (EmailConfig.onDelete: Cascade).
+  await prisma.utilisateur.delete({ where: { id_utilisateur: id } });
+}
+
+// Nombre d'administrateurs encore actifs — pour le garde-fou « dernier admin ».
+export async function compterAdminsActifs() {
+  return prisma.utilisateur.count({ where: { droit_admin: true, compte_desactive: false } });
 }
 
 // ─── Configuration e-mail (une par utilisateur) ────────────────────────────────

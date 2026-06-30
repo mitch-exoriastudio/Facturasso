@@ -11,6 +11,7 @@ function extraireDroits(u) {
     id_utilisateur:        u.id_utilisateur,
     nom_utilisateur:       u.nom_utilisateur,
     droit_admin:           !!u.droit_admin,
+    compte_superviseur:    !!u.compte_superviseur,
     droit_consult_fac:     !!u.droit_consult_fac,
     droit_ajout_fac:       !!u.droit_ajout_fac,
     droit_consult_paiem:   !!u.droit_consult_paiem,
