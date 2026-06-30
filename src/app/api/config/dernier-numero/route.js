@@ -1,9 +1,11 @@
 import { NextResponse } from 'next/server';
 import { protege } from '@/lib/handler.js';
+import { exigerSuperviseur } from '@/lib/auth.js';
 import { mettreAJourDernierNumero } from '@/lib/modeles/configModele.js';
 
 // PATCH /api/config/dernier-numero
-export const PATCH = protege('droit_config', async (req) => {
+export const PATCH = protege('droit_config', async (req, { utilisateur }) => {
+  exigerSuperviseur(utilisateur);
   const { numero: brut } = await req.json();
   const numero = Number(brut);
   if (!Number.isInteger(numero) || numero < 0) {

@@ -1,10 +1,12 @@
 import { NextResponse } from 'next/server';
 import { parse as parseCsv } from 'csv-parse/sync';
 import { protege } from '@/lib/handler.js';
+import { exigerSuperviseur } from '@/lib/auth.js';
 import { importerVilles } from '@/lib/modeles/configModele.js';
 
 // POST /api/config/importer-villes  (body: { csv: "contenu brut du fichier" })
-export const POST = protege('droit_config', async (req) => {
+export const POST = protege('droit_config', async (req, { utilisateur }) => {
+  exigerSuperviseur(utilisateur);
   const { csv } = await req.json();
   if (!csv) return NextResponse.json({ message: 'Fichier CSV manquant.' }, { status: 400 });
   try {

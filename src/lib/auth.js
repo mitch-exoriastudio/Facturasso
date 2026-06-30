@@ -47,3 +47,10 @@ export function exigerDroit(payload, nomDroit) {
   if (payload && (payload.droit_admin || payload[nomDroit])) return;
   throw new ErreurHttp(403, 'Droit insuffisant pour cette action.');
 }
+
+// Vérifie strictement le compte superviseur (aucun bypass admin).
+// Réservé aux options superviseur.
+export function exigerSuperviseur(payload) {
+  if (payload && payload.compte_superviseur) return;
+  throw new ErreurHttp(403, 'Action réservée au compte superviseur.');
+}

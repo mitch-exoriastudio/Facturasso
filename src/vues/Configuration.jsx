@@ -23,7 +23,7 @@ const ONGLETS = [
   { id: 'email',        label: "Envoi d'e-mails" },
   { id: 'prestations',  label: 'Liste prestations' },
   { id: 'paiements',    label: 'Modes de paiement' },
-  { id: 'superviseur',  label: 'Options superviseur', adminSeulement: true },
+  { id: 'superviseur',  label: 'Options superviseur', superviseurSeulement: true },
 ];
 
 export default function Configuration() {
@@ -70,7 +70,7 @@ export default function Configuration() {
   if (chargement) return <SqueletteConfiguration />;
   if (!params) return <p className="text-red-500 text-sm">Erreur de chargement des paramètres.</p>;
 
-  const ongletsVisibles = ONGLETS.filter(o => !o.adminSeulement || utilisateur?.droit_admin);
+  const ongletsVisibles = ONGLETS.filter(o => !o.superviseurSeulement || utilisateur?.compte_superviseur);
 
   return (
     <div>
@@ -113,7 +113,7 @@ export default function Configuration() {
         {onglet === 'paiements' && (
           <OngletModesPaiement />
         )}
-        {onglet === 'superviseur' && utilisateur?.droit_admin && (
+        {onglet === 'superviseur' && utilisateur?.compte_superviseur && (
           <OngletSuperviseur
             dernierNumero={params.facture_dernier_numero_interne}
             onMajNumero={n => setParams({ ...params, facture_dernier_numero_interne: n })}
