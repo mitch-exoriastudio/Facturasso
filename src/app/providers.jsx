@@ -5,12 +5,15 @@
 // =====================================================================
 import { FournisseurGardeNav } from '@/contextes/ContexteGardeNav.jsx';
 import { FournisseurAuth } from '@/contextes/ContexteAuth.jsx';
+import { FournisseurToast } from '@/contextes/ContexteToast.jsx';
 
 export function Providers({ children }) {
   return (
     <FournisseurGardeNav>
       <FournisseurAuth>
-        {children}
+        <FournisseurToast>
+          {children}
+        </FournisseurToast>
       </FournisseurAuth>
     </FournisseurGardeNav>
   );

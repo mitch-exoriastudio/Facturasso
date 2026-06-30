@@ -6,14 +6,15 @@ import { Plus, Check, Trash2, CreditCard } from 'lucide-react';
 import { configService } from '../../services/configService.js';
 import ModalConfirmation from '../../composants/ModalConfirmation.jsx';
 import { SqueletteModesPaiement } from '../../composants/Squelette.jsx';
+import { useToast } from '../../contextes/ContexteToast.jsx';
 
 const CL = 'border border-gray-200 dark:border-gray-700 rounded-lg px-2 py-1.5 text-sm bg-white dark:bg-gray-700 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-primaire';
 
 export default function OngletModesPaiement() {
+  const toast = useToast();
   const [modes, setModes] = useState([]);
   const [avecArchives, setAvecArchives] = useState(false);
   const [chargement, setChargement] = useState(true);
-  const [message, setMessage] = useState(null); // { texte, ok }
   const [confirmerSuppression, setConfirmerSuppression] = useState(null);
   const cleCompteur = useRef(0);
 
@@ -43,11 +44,10 @@ export default function OngletModesPaiement() {
       } else {
         await configService.postModePaiement(m);
       }
-      setMessage({ texte: 'Enregistré !', ok: true });
+      toast.succes('Mode de paiement enregistré.');
       charger();
-      setTimeout(() => setMessage(null), 2000);
     } catch (err) {
-      setMessage({ texte: err.response?.data?.message || 'Erreur lors de la sauvegarde.', ok: false });
+      toast.erreur(err.response?.data?.message || 'Erreur lors de la sauvegarde.');
     }
   }
 
@@ -56,10 +56,10 @@ export default function OngletModesPaiement() {
     setConfirmerSuppression(null);
     try {
       await configService.deleteModePaiement(id);
+      toast.succes('Mode de paiement supprimé.');
       charger();
     } catch (err) {
-      setMessage({ texte: err.response?.data?.message || 'Impossible de supprimer ce mode.', ok: false });
-      setTimeout(() => setMessage(null), 4000);
+      toast.erreur(err.response?.data?.message || 'Impossible de supprimer ce mode.');
     }
   }
 
@@ -87,12 +87,6 @@ export default function OngletModesPaiement() {
           <Plus className="w-4 h-4" /> Nouveau mode
         </button>
       </div>
-
-      {message && (
-        <div className={`text-sm rounded-lg p-3 mb-3 ${message.ok ? 'text-green-700 dark:text-green-400 bg-green-50 dark:bg-green-900/20' : 'text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20'}`}>
-          {message.texte}
-        </div>
-      )}
 
       {chargement && <SqueletteModesPaiement />}
 
