@@ -7,15 +7,16 @@ import { configService } from '../../services/configService.js';
 import ModalConfirmation from '../../composants/ModalConfirmation.jsx';
 import ChampNumerique from '../../composants/ChampNumerique.jsx';
 import { SquelettePrestations } from '../../composants/Squelette.jsx';
+import { useToast } from '../../contextes/ContexteToast.jsx';
 
 const CL = 'border border-gray-200 dark:border-gray-700 rounded-lg px-2 py-1.5 text-sm bg-white dark:bg-gray-700 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-primaire';
 
 export default function OngletPrestations() {
+  const toast = useToast();
   const [prestations, setPrestations] = useState([]);
   const [avecArchivees, setAvecArchivees] = useState(false);
   const [recherche, setRecherche] = useState('');
   const [chargement, setChargement] = useState(true);
-  const [message, setMessage] = useState(null); // { texte, ok }
   const [confirmerSuppression, setConfirmerSuppression] = useState(null);
   const cleCompteur = useRef(0);
 
@@ -45,19 +46,23 @@ export default function OngletPrestations() {
       } else {
         await configService.postPrestation(p);
       }
-      setMessage({ texte: 'Enregistré !', ok: true });
+      toast.succes('Prestation enregistrée.');
       charger();
-      setTimeout(() => setMessage(null), 2000);
     } catch (err) {
-      setMessage({ texte: err.response?.data?.message || 'Erreur lors de la sauvegarde.', ok: false });
+      toast.erreur(err.response?.data?.message || 'Erreur lors de la sauvegarde.');
     }
   }
 
   async function supprimerConfirme() {
     const id = confirmerSuppression;
     setConfirmerSuppression(null);
-    await configService.deletePrestation(id);
-    charger();
+    try {
+      await configService.deletePrestation(id);
+      toast.succes('Prestation supprimée.');
+      charger();
+    } catch (err) {
+      toast.erreur(err.response?.data?.message || 'Impossible de supprimer cette prestation.');
+    }
   }
 
   // Les nouvelles lignes sont insérées en tête de liste pour rester visibles.
@@ -92,12 +97,6 @@ export default function OngletPrestations() {
           className="accent-primaire" />
         Afficher les prestations archivées
       </label>
-
-      {message && (
-        <div className={`text-sm rounded-lg p-3 mb-3 ${message.ok ? 'text-green-700 dark:text-green-400 bg-green-50 dark:bg-green-900/20' : 'text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20'}`}>
-          {message.texte}
-        </div>
-      )}
 
       {chargement && <SquelettePrestations />}
 

@@ -2,7 +2,8 @@
 // =====================================================================
 //  Contexte Toast — notifications éphémères (succès / erreur).
 //  useToast() expose .succes(texte) et .erreur(texte). Les toasts
-//  s'empilent en bas à droite et disparaissent automatiquement.
+//  s'empilent en bas à gauche (juste à droite de la sidebar) et
+//  disparaissent automatiquement. Position unique dans toute l'app.
 // =====================================================================
 import { createContext, useContext, useState, useCallback, useMemo, useRef } from 'react';
 import { CheckCircle2, AlertCircle, X } from 'lucide-react';
@@ -39,7 +40,7 @@ export function FournisseurToast({ children }) {
   return (
     <ContexteToast.Provider value={toast}>
       {children}
-      <div className="fixed bottom-4 right-4 z-[60] flex flex-col gap-2 w-72 max-w-[calc(100vw-2rem)] pointer-events-none">
+      <div className="fixed bottom-4 left-4 lg:left-[17rem] z-[60] flex flex-col gap-2 w-72 max-w-[calc(100vw-2rem)] pointer-events-none">
         {toasts.map(t => (
           <Toast key={t.id} texte={t.texte} ok={t.ok} onFermer={() => retirer(t.id)} />
         ))}
