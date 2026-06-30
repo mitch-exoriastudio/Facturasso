@@ -41,7 +41,7 @@ const GROUPES = [
 ];
 
 const FORM_VIDE = {
-  nom_utilisateur: '', mot_de_passe: '', compte_desactive: false,
+  nom_utilisateur: '', email: '', telephone: '', mot_de_passe: '', compte_desactive: false,
   droit_admin: false, droit_consult_fac: false, droit_ajout_fac: false,
   droit_consult_paiem: false, droit_ajout_paiem: false,
   droit_consult_clients: false, droit_ajout_clients: false, droit_config: false,
@@ -133,7 +133,7 @@ export default function OngletUtilisateurs({ utilisateurConnecte, onModifie }) {
 
   // Bascule réellement la sélection (sans garde).
   function ouvrirUtilisateur(u) {
-    const f = { ...u, mot_de_passe: '' };
+    const f = { ...u, email: u.email ?? '', telephone: u.telephone ?? '', mot_de_passe: '' };
     setSelectionne(u);
     setEstNouveau(false);
     setForm(f);
@@ -254,7 +254,7 @@ export default function OngletUtilisateurs({ utilisateurConnecte, onModifie }) {
                   </span>
                   <span className="block text-xs text-gray-400 dark:text-gray-500 truncate">
                     {!!u.compte_desactive && <span className="text-amber-500 dark:text-amber-400">Désactivé · </span>}
-                    {resumeRole(u)}
+                    {u.email || resumeRole(u)}
                   </span>
                 </span>
                 {peutSupprimer(u) && (
@@ -338,6 +338,22 @@ export default function OngletUtilisateurs({ utilisateurConnecte, onModifie }) {
                       {montrerMdp ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                     </button>
                   </div>
+                </div>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs text-gray-500 dark:text-gray-400 mb-1">
+                    Adresse e-mail <span className="text-gray-400 dark:text-gray-500">(identifiant de connexion)</span>
+                  </label>
+                  <input type="email" value={form.email}
+                    onChange={e => setForm(f => ({ ...f, email: e.target.value }))}
+                    autoComplete="off" disabled={formulaireBloque} className={CL} />
+                </div>
+                <div>
+                  <label className="block text-xs text-gray-500 dark:text-gray-400 mb-1">Téléphone mobile</label>
+                  <input type="tel" value={form.telephone}
+                    onChange={e => setForm(f => ({ ...f, telephone: e.target.value }))}
+                    autoComplete="off" disabled={formulaireBloque} className={CL} />
                 </div>
               </div>
               <label className={`flex items-center gap-2 text-sm text-gray-600 dark:text-gray-300 ${formulaireBloque || selectionne?.compte_superviseur ? 'opacity-50 cursor-not-allowed' : ''}`}>

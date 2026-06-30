@@ -4,7 +4,7 @@
 // =====================================================================
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { Building2, User, Lock, ChevronDown, Loader2 } from 'lucide-react';
+import { Building2, Mail, Lock, ChevronDown, Loader2 } from 'lucide-react';
 import { useAuth } from '../contextes/ContexteAuth.jsx';
 import { api } from '../services/api.js';
 
@@ -16,7 +16,7 @@ export default function Connexion() {
   const [dossierId, setDossierId]             = useState('');
   const [chargementDossiers, setChargementDossiers] = useState(true);
 
-  const [nomUtilisateur, setNomUtilisateur]   = useState('');
+  const [email, setEmail]                     = useState('');
   const [motDePasse, setMotDePasse]           = useState('');
   const [erreur, setErreur]                   = useState('');
   const [enCours, setEnCours]                 = useState(false);
@@ -38,7 +38,7 @@ export default function Connexion() {
     setErreur('');
     setEnCours(true);
     try {
-      await seConnecter({ nomUtilisateur, motDePasse, dossierId });
+      await seConnecter({ email, motDePasse, dossierId });
       router.push('/');
     } catch (err) {
       setErreur(err.response?.data?.message || 'Connexion impossible.');
@@ -94,16 +94,17 @@ export default function Connexion() {
               </div>
             )}
 
-            {/* Utilisateur */}
+            {/* Adresse e-mail */}
             <div>
               <label className="block text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-1.5">
-                Utilisateur
+                Adresse e-mail
               </label>
               <div className="relative">
-                <User size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                <Mail size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
                 <input
-                  value={nomUtilisateur}
-                  onChange={(e) => setNomUtilisateur(e.target.value.toUpperCase())}
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
                   autoFocus={dossiers.length <= 1}
                   autoComplete="username"
                   className="w-full border border-gray-200 dark:border-gray-700 rounded-xl pl-9 py-2.5 bg-white dark:bg-gray-800 text-sm focus:outline-none focus:ring-2 focus:ring-primaire dark:text-gray-100"

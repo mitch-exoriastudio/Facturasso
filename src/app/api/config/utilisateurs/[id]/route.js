@@ -9,6 +9,7 @@ import {
   supprimerUtilisateur,
   compterAdminsActifs,
 } from '@/lib/modeles/configModele.js';
+import { EMAIL_INVALIDE, emailValide } from '@/lib/validation.js';
 
 // PUT /api/config/utilisateurs/:id
 export const PUT = protege('droit_config', async (req, ctx) => {
@@ -20,6 +21,11 @@ export const PUT = protege('droit_config', async (req, ctx) => {
   if (!cible) return NextResponse.json({ message: 'Utilisateur introuvable.' }, { status: 404 });
 
   const body = await req.json();
+
+  // L'e-mail est l'identifiant de connexion → obligatoire et valide.
+  if (!emailValide(body.email)) {
+    return NextResponse.json({ message: EMAIL_INVALIDE }, { status: 400 });
+  }
 
   if (cible.compte_superviseur && idCible !== idConnecte) {
     return NextResponse.json({ message: 'Ce compte superviseur ne peut être modifié que par lui-même.' }, { status: 403 });

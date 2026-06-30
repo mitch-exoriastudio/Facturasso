@@ -51,6 +51,15 @@ const LIBELLES_COLONNES = {
   abrege_mode_paiement:      'Abrégé du mode de paiement (10 caractères max)',
 };
 
+// Libellés français pour les violations d'unicité (Prisma P2002).
+// La clé est recherchée par inclusion dans le nom de l'index/colonne en conflit.
+const LIBELLES_UNICITE = {
+  email:                'Cette adresse e-mail est déjà utilisée par un autre compte.',
+  nom_utilisateur:      'Ce nom d\'utilisateur est déjà utilisé.',
+  abrege_mode_paiement: 'Cet abrégé de mode de paiement est déjà utilisé.',
+  reference:            'Cette référence est déjà utilisée.',
+};
+
 // Convertit une exception en réponse JSON.
 export function gererErreur(err) {
   // Erreur métier explicite (auth, droit, validation manuelle…)
@@ -62,6 +71,15 @@ export function gererErreur(err) {
     const colonne = err.meta?.column_name ?? '';
     const libelle = LIBELLES_COLONNES[colonne] ?? `champ « ${colonne} »`;
     return NextResponse.json({ message: `La valeur saisie est trop longue pour le champ : ${libelle}.` }, { status: 400 });
+  }
+  // Violation de contrainte d'unicité (Prisma P2002)
+  if (err?.code === 'P2002') {
+    const cible = Array.isArray(err.meta?.target) ? err.meta.target.join(',') : String(err.meta?.target ?? '');
+    const cle = Object.keys(LIBELLES_UNICITE).find(k => cible.includes(k));
+    return NextResponse.json(
+      { message: cle ? LIBELLES_UNICITE[cle] : 'Cette valeur est déjà utilisée.' },
+      { status: 409 },
+    );
   }
   console.error('Erreur serveur :', err);
   return NextResponse.json({ message: 'Une erreur interne est survenue.' }, { status: 500 });

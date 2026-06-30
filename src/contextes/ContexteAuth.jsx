@@ -30,9 +30,9 @@ export function FournisseurAuth({ children }) {
     setPret(true);
   }, []);
 
-  // Connexion : appelle l'API avec le dossier sélectionné.
-  async function seConnecter({ nomUtilisateur, motDePasse, dossierId }) {
-    const { data } = await api.post('/auth/connexion', { nomUtilisateur, motDePasse, dossierId });
+  // Connexion : appelle l'API avec le dossier sélectionné (identifiant = e-mail).
+  async function seConnecter({ email, motDePasse, dossierId }) {
+    const { data } = await api.post('/auth/connexion', { email, motDePasse, dossierId });
     localStorage.setItem('jeton',       data.jeton);
     localStorage.setItem('utilisateur', JSON.stringify(data.utilisateur));
     localStorage.setItem('dossier',     JSON.stringify(data.dossier));

@@ -2,18 +2,26 @@
 //  Script utilitaire : crée (ou réinitialise) un compte administrateur.
 //  À lancer après `npx prisma migrate dev` pour la première connexion.
 //
-//  Usage :  npm run creer-admin -- <nom> <motDePasse>
-//  Exemple : npm run creer-admin -- ADMIN monMotDePasse
+//  La connexion se faisant par e-mail, l'administrateur doit en avoir un.
+//
+//  Usage :  npm run creer-admin -- <nom> <email> <motDePasse>
+//  Exemple : npm run creer-admin -- ADMIN admin@asso.fr monMotDePasse
 // =====================================================================
 import 'dotenv/config';
 import bcrypt from 'bcryptjs';
 import { PrismaClient } from '@prisma/client';
 
 const prisma = new PrismaClient();
-const [, , nom, motDePasse] = process.argv;
+const [, , nom, emailBrut, motDePasse] = process.argv;
 
-if (!nom || !motDePasse) {
-  console.error('Usage : npm run creer-admin -- <nom> <motDePasse>');
+if (!nom || !emailBrut || !motDePasse) {
+  console.error('Usage : npm run creer-admin -- <nom> <email> <motDePasse>');
+  process.exit(1);
+}
+
+const email = emailBrut.trim().toLowerCase();
+if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+  console.error(`Adresse e-mail invalide : « ${emailBrut} ».`);
   process.exit(1);
 }
 
@@ -22,6 +30,7 @@ const hache = await bcrypt.hash(motDePasse, 10);
 await prisma.utilisateur.upsert({
   where: { nom_utilisateur: nom },
   update: {
+    email,
     mot_de_passe_hache:    hache,
     droit_admin:           true,
     compte_desactive:      false,
@@ -35,6 +44,7 @@ await prisma.utilisateur.upsert({
   },
   create: {
     nom_utilisateur:       nom,
+    email,
     mot_de_passe_hache:    hache,
     droit_admin:           true,
     droit_consult_fac:     true,
@@ -47,6 +57,6 @@ await prisma.utilisateur.upsert({
   },
 });
 
-console.log(`✔ Administrateur « ${nom} » créé / mis à jour.`);
+console.log(`✔ Administrateur « ${nom} » (${email}) créé / mis à jour.`);
 await prisma.$disconnect();
 process.exit(0);

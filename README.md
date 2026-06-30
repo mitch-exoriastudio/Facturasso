@@ -34,7 +34,7 @@ cp .env.example .env      # adapter DATABASE_URL et JWT_SECRET
 
 ```bash
 npm run db:migrate:dev    # crée la base et applique les migrations Prisma
-npm run creer-admin -- ADMIN motdepasse   # crée le 1er compte administrateur
+npm run creer-admin -- ADMIN admin@asso.fr motdepasse   # crée le 1er compte administrateur (connexion par e-mail)
 ```
 
 ### 3. Démarrer l'application
@@ -66,6 +66,12 @@ Ouvrir http://localhost:3000 et se connecter avec le compte créé à l'étape 2
 - [ ] **Lot 6 — Génération PDF** : mentions TVA conditionnelles, structure Factur-X.
 - [ ] **Lot 7 — Envoi d'e-mails** : unitaire + en masse.
 - [ ] **Lot 8 — Facturation électronique** : Factur-X / UBL 2.1, conformité PPF/PDP (obligation 2026), tableau de bord, déploiement o2switch.
+- [ ] **Lot 9 — Double authentification par OTP SMS** : second facteur sur les **nouveaux postes** ou les postes **inactifs depuis longtemps**.
+  - Identifiant de connexion = adresse e-mail ; le numéro de téléphone (mobile) du compte sert de destinataire de l'OTP. *(champs `utilisateur.email` / `utilisateur.telephone` déjà en base — voir migration `utilisateur_email_telephone`.)*
+  - Empreinte d'appareil « connu » (cookie/token signé + table `appareil_connu` : `id_utilisateur`, empreinte, libellé, `derniere_connexion`).
+  - Déclenchement de l'OTP si : appareil inconnu **ou** dernière connexion de cet appareil > seuil configurable (ex. 30 jours).
+  - Génération d'un code à usage unique (durée de vie courte, nombre d'essais limité, anti-bruteforce), envoi via une passerelle SMS (fournisseur à choisir, ex. OVH SMS / Twilio / Brevo), puis validation et enregistrement de l'appareil.
+  - Paramétrage par dossier (activation, seuil d'inactivité) et secret/identifiants de la passerelle SMS côté serveur (`.env`).
 
 ---
 

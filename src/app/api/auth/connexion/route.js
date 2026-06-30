@@ -10,6 +10,7 @@ function extraireDroits(u) {
   return {
     id_utilisateur:        u.id_utilisateur,
     nom_utilisateur:       u.nom_utilisateur,
+    email:                 u.email ?? null,
     droit_admin:           !!u.droit_admin,
     compte_superviseur:    !!u.compte_superviseur,
     droit_consult_fac:     !!u.droit_consult_fac,
@@ -23,13 +24,15 @@ function extraireDroits(u) {
 }
 
 // POST /api/auth/connexion
-// Corps : { nomUtilisateur, motDePasse, dossierId }
+// Corps : { email, motDePasse, dossierId }
+// La connexion se fait désormais par adresse e-mail (et non plus par le nom).
 // En mode dev bypass, dossierId est optionnel (défaut : "dev").
 export const POST = ouvert(async (req) => {
-  const { nomUtilisateur, motDePasse, dossierId = 'dev' } = await req.json();
+  const { email, motDePasse, dossierId = 'dev' } = await req.json();
 
-  if (!nomUtilisateur || !motDePasse) {
-    return NextResponse.json({ message: 'Identifiant et mot de passe requis.' }, { status: 400 });
+  const emailNormalise = (email ?? '').trim().toLowerCase();
+  if (!emailNormalise || !motDePasse) {
+    return NextResponse.json({ message: 'Adresse e-mail et mot de passe requis.' }, { status: 400 });
   }
 
   const dossier = trouverDossier(dossierId);
@@ -39,7 +42,7 @@ export const POST = ouvert(async (req) => {
 
   const client = getDossierClient(dossier.database_url);
   const utilisateur = await client.utilisateur.findUnique({
-    where: { nom_utilisateur: nomUtilisateur },
+    where: { email: emailNormalise },
   });
 
   if (!utilisateur || utilisateur.compte_desactive) {

@@ -16,6 +16,8 @@ datasource db {
 model Utilisateur {
   id_utilisateur        Int          @id @default(autoincrement())
   nom_utilisateur       String       @unique @db.VarChar(40)
+  email                 String?      @unique @db.VarChar(260)
+  telephone             String?      @db.VarChar(20)
   mot_de_passe_hache    String       @db.VarChar(255)
   droit_admin           Boolean      @default(false)
   compte_desactive      Boolean      @default(false)

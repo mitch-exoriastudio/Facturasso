@@ -53,9 +53,17 @@ export async function mettreAJourDernierNumero(numero) {
 
 // ─── Utilisateurs ─────────────────────────────────────────────────────────────
 
+// Normalise un e-mail (minuscules + sans espaces superflus) ou renvoie null.
+export function normaliserEmail(email) {
+  const v = (email ?? '').trim().toLowerCase();
+  return v || null;
+}
+
 const CHAMPS_UTILISATEUR = {
   id_utilisateur:       true,
   nom_utilisateur:      true,
+  email:                true,
+  telephone:            true,
   droit_admin:          true,
   compte_desactive:     true,
   compte_superviseur:   true,
@@ -84,6 +92,8 @@ export async function creerUtilisateur(donnees, motDePasseHache) {
   const utilisateur = await prisma.utilisateur.create({
     data: {
       nom_utilisateur:       donnees.nom_utilisateur,
+      email:                 normaliserEmail(donnees.email),
+      telephone:             donnees.telephone?.trim() || null,
       mot_de_passe_hache:    motDePasseHache,
       droit_admin:           !!donnees.droit_admin,
       compte_desactive:      !!donnees.compte_desactive,
@@ -102,6 +112,8 @@ export async function creerUtilisateur(donnees, motDePasseHache) {
 export async function modifierUtilisateur(id, donnees, motDePasseHache) {
   const data = {
     nom_utilisateur:       donnees.nom_utilisateur,
+    email:                 normaliserEmail(donnees.email),
+    telephone:             donnees.telephone?.trim() || null,
     droit_admin:           !!donnees.droit_admin,
     compte_desactive:      !!donnees.compte_desactive,
     droit_consult_fac:     !!donnees.droit_consult_fac,
