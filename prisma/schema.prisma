@@ -3,7 +3,10 @@
 // Connexion via DATABASE_URL dans .env
 
 generator client {
-  provider = "prisma-client-js"
+  provider      = "prisma-client-js"
+  // o2switch (CloudLinux/RHEL) est lié à OpenSSL 1.0.x : la détection auto de
+  // Prisma s'y trompe parfois et génère un moteur incompatible.
+  binaryTargets = ["native", "rhel-openssl-1.0.x"]
 }
 
 datasource db {
