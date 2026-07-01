@@ -4,6 +4,18 @@ const nextConfig = {
   // pour fonctionner correctement dans les route handlers.
   serverExternalPackages: ['@prisma/client', 'prisma'],
 
+  // Hébergement mutualisé (o2switch, LVE CloudLinux) : le quota de
+  // processus/threads du compte est bien plus bas que ce que `ulimit -u`
+  // affiche. Chaque worker de build ouvre en plus son propre pool de threads
+  // Rust (SWC) dimensionné sur les CPU physiques de la machine hôte — d'où
+  // "pthread_create: Resource temporarily unavailable" en cas de valeur trop
+  // haute. On limite le nombre de workers Next ici, et le pool Rust par
+  // worker via RAYON_NUM_THREADS=1 au moment du build (voir script
+  // `build:passenger`).
+  experimental: {
+    cpus: 2,
+  },
+
   // Aucune configuration ESLint n'est fournie : on n'interrompt pas le build.
   eslint: {
     ignoreDuringBuilds: true,
