@@ -4,6 +4,7 @@ Réécriture web d'une application de facturation WinDev pour des **associations
 
 Stack **unifiée Next.js** : front-end et back-end dans un seul projet, un seul `package.json`, un seul serveur.
 
+- **Langage** : TypeScript (mode `strict`) — vérification via `npm run typecheck`
 - **Framework** : Next.js (App Router) + React + Tailwind CSS
 - **API** : route handlers Next.js (`src/app/api/`) + Prisma
 - **Base de données** : MariaDB / MySQL — schéma géré via Prisma (`prisma/schema.prisma`)
