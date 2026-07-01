@@ -4,6 +4,7 @@
 //  Peut aussi être rejoué manuellement : `npx prisma db seed`
 // =====================================================================
 import { PrismaClient } from '@prisma/client';
+import bcrypt from 'bcryptjs';
 
 const prisma = new PrismaClient();
 
@@ -46,6 +47,29 @@ async function main() {
     if (!existant) {
       await prisma.tauxTva.create({ data: t });
     }
+  }
+
+  // Compte superviseur (identifiants définis dans .env).
+  const nomSuperviseur = process.env.SEED_SUPERVISEUR_NOM;
+  const emailSuperviseur = process.env.SEED_SUPERVISEUR_EMAIL;
+  const mdpSuperviseur = process.env.SEED_SUPERVISEUR_MOT_DE_PASSE;
+
+  if (nomSuperviseur && emailSuperviseur && mdpSuperviseur) {
+    const hache = await bcrypt.hash(mdpSuperviseur, 10);
+    await prisma.utilisateur.upsert({
+      where: { nom_utilisateur: nomSuperviseur },
+      update: {},
+      create: {
+        nom_utilisateur: nomSuperviseur,
+        email: emailSuperviseur,
+        mot_de_passe_hache: hache,
+        droit_admin: true,
+        compte_superviseur: true,
+      },
+    });
+    console.log(`✔ Superviseur « ${nomSuperviseur} » créé.`);
+  } else {
+    console.log('⚠ Superviseur ignoré : SEED_SUPERVISEUR_NOM, SEED_SUPERVISEUR_EMAIL ou SEED_SUPERVISEUR_MOT_DE_PASSE absent du .env.');
   }
 
   console.log('✔ Seed terminé : parametre_general, modes de paiement et taux de TVA initialisés.');
