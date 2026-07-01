@@ -6,6 +6,7 @@ import type { FormEvent } from 'react';
 import { X, Loader2 } from 'lucide-react';
 import ChampAutoVille from './ChampAutoVille';
 import ChampSansAutofill from './ChampSansAutofill';
+import MenuDeroulant from './MenuDeroulant';
 
 const CIVILITES = ['', 'M.', 'Mme', 'Mlle', 'Dr', 'Me'];
 
@@ -129,10 +130,13 @@ export default function FicheClient({ client, peutModifier, onValider, onFermer 
           <div className="flex gap-3">
             <div className="w-28">
               <label className={classeLabel}>Civilité</label>
-              <select value={form.civilite} onChange={maj('civilite')} disabled={!peutModifier}
-                className={classeInput}>
-                {CIVILITES.map((c) => <option key={c} value={c}>{c}</option>)}
-              </select>
+              <MenuDeroulant
+                value={form.civilite}
+                onChange={(valeur) => setForm((f) => ({ ...f, civilite: String(valeur) }))}
+                options={CIVILITES.map((c) => ({ value: c, label: c || '—' }))}
+                placeholder="—"
+                disabled={!peutModifier}
+              />
             </div>
             <div className="flex-1">
               <label className={classeLabel}>Nom <span className="text-red-500">*</span></label>

@@ -123,7 +123,7 @@ export default function MenuDeroulant({
         aria-haspopup="listbox"
         aria-expanded={ouvert}
         aria-controls={idListe}
-        className="w-full flex items-center justify-between gap-2 border border-gray-200 dark:border-gray-700 rounded-lg pl-3 pr-2.5 py-2 text-sm bg-white dark:bg-gray-800 dark:text-gray-100 text-left focus:outline-none focus:ring-2 focus:ring-primaire disabled:opacity-50 disabled:cursor-not-allowed transition"
+        className="w-full flex items-center justify-between gap-2 border border-gray-200 dark:border-gray-700 rounded-xl pl-3 pr-2.5 py-2.5 text-sm bg-white dark:bg-gray-800 dark:text-gray-100 text-left focus:outline-none focus:ring-2 focus:ring-primaire disabled:opacity-50 disabled:cursor-not-allowed transition"
       >
         <span className={optionSelectionnee ? '' : 'text-gray-400 dark:text-gray-500'}>
           {optionSelectionnee ? optionSelectionnee.label : placeholder}

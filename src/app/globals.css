@@ -26,10 +26,88 @@ body {
 .animate-surgir  { animation: surgir  180ms ease-out both; }
 .animate-glisser { animation: glisser 200ms ease-out both; }
 
-/* Cases à cocher et boutons radio en mode sombre : fond sombre natif */
-.dark input[type="checkbox"],
-.dark input[type="radio"] {
-  color-scheme: dark;
+/* Cases à cocher et boutons radio « accent-primaire » : rendu entièrement
+   personnalisé pour garantir une coche / un point BLANC (le rendu natif via
+   `accent-color` laisse le navigateur choisir un contraste sombre sur le cyan). */
+input[type="checkbox"].accent-primaire,
+input[type="radio"].accent-primaire {
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  width: 1rem;
+  height: 1rem;
+  flex-shrink: 0;
+  display: inline-block;
+  vertical-align: middle;
+  position: relative;
+  cursor: pointer;
+  border: 1.5px solid #9ca3af; /* gray-400 */
+  background-color: #fff;
+  transition: background-color 120ms ease, border-color 120ms ease;
+}
+.dark input[type="checkbox"].accent-primaire,
+.dark input[type="radio"].accent-primaire {
+  border-color: #4b5563; /* gray-600 */
+  background-color: #1f2937; /* gray-800 */
+}
+
+input[type="checkbox"].accent-primaire { border-radius: 0.25rem; }
+input[type="radio"].accent-primaire { border-radius: 9999px; }
+
+/* Mode clair — cochés : fond cyan, marqueur blanc */
+input[type="checkbox"].accent-primaire:checked,
+input[type="radio"].accent-primaire:checked {
+  background-color: #16a9bd;
+  border-color: #16a9bd;
+}
+
+/* Mode sombre — cochés : bordure cyan, fond sombre, marqueur cyan */
+.dark input[type="checkbox"].accent-primaire:checked,
+.dark input[type="radio"].accent-primaire:checked {
+  background-color: #1f2937; /* conserve le fond sombre */
+  border-color: #16a9bd;
+  border-width: 2px;
+}
+
+/* Coche blanche (mode clair) */
+input[type="checkbox"].accent-primaire:checked {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none'%3E%3Cpath d='M3.5 8.5l3 3 6-6.5' stroke='%23fff' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: 100% 100%;
+}
+/* Coche cyan (mode sombre) */
+.dark input[type="checkbox"].accent-primaire:checked {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none'%3E%3Cpath d='M3.5 8.5l3 3 6-6.5' stroke='%2316a9bd' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+}
+
+/* Point du bouton radio */
+input[type="radio"].accent-primaire:checked::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  margin: auto;
+  width: 0.375rem;
+  height: 0.375rem;
+  border-radius: 9999px;
+  background-color: #fff; /* blanc en mode clair */
+}
+.dark input[type="radio"].accent-primaire:checked::after {
+  background-color: #16a9bd; /* cyan en mode sombre */
+}
+
+/* Anneau de focus accessible */
+input[type="checkbox"].accent-primaire:focus-visible,
+input[type="radio"].accent-primaire:focus-visible {
+  outline: 2px solid #16a9bd;
+  outline-offset: 2px;
+}
+
+/* États désactivés */
+input[type="checkbox"].accent-primaire:disabled,
+input[type="radio"].accent-primaire:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
 }
 
 /* Suppression des flèches natives des champs number.

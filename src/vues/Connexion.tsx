@@ -5,9 +5,10 @@
 import { useState, useEffect } from 'react';
 import type { FormEvent } from 'react';
 import { useRouter } from 'next/navigation';
-import { Building2, Mail, Lock, ChevronDown, Loader2 } from 'lucide-react';
+import { Building2, Mail, Lock, Loader2 } from 'lucide-react';
 import type { AxiosError } from 'axios';
 import { useAuth } from '@/contextes/ContexteAuth';
+import MenuDeroulant from '@/composants/MenuDeroulant';
 import { api } from '@/services/api';
 import type { SessionDossier } from '@/types';
 
@@ -81,20 +82,12 @@ export default function Connexion() {
                 <label className="block text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-1.5">
                   Dossier
                 </label>
-                <div className="relative">
-                  <Building2 size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-                  <select
-                    value={dossierId}
-                    onChange={(e) => setDossierId(e.target.value)}
-                    className="w-full appearance-none border border-gray-200 dark:border-gray-700 rounded-xl pl-9 pr-9 py-2.5 bg-white dark:bg-gray-800 text-sm focus:outline-none focus:ring-2 focus:ring-primaire dark:text-gray-100"
-                  >
-                    <option value="">— Choisir un dossier —</option>
-                    {dossiers.map((d) => (
-                      <option key={d.id} value={d.id}>{d.nom}</option>
-                    ))}
-                  </select>
-                  <ChevronDown size={15} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
-                </div>
+                <MenuDeroulant
+                  value={dossierId}
+                  onChange={(valeur) => setDossierId(String(valeur))}
+                  options={dossiers.map((d) => ({ value: d.id, label: d.nom }))}
+                  placeholder="— Choisir un dossier —"
+                />
               </div>
             )}
 
