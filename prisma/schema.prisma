@@ -4,9 +4,9 @@
 
 generator client {
   provider      = "prisma-client-js"
-  // o2switch (CloudLinux/RHEL) est lié à OpenSSL 1.0.x : la détection auto de
-  // Prisma s'y trompe parfois et génère un moteur incompatible.
-  binaryTargets = ["native", "rhel-openssl-1.0.x"]
+  // o2switch (CloudLinux/RHEL) tourne avec OpenSSL 1.1.1k : la détection auto de
+  // Prisma peut s'y tromper et générer un moteur incompatible.
+  binaryTargets = ["native", "rhel-openssl-1.1.x"]
 }
 
 datasource db {
